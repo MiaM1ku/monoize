@@ -43,6 +43,7 @@ pub struct UpdateSettingsRequest {
     pub monoize_strip_cross_protocol_nested_extra: Option<bool>,
     pub monoize_request_capture_enabled: Option<bool>,
     pub monoize_request_capture_retention_days: Option<u64>,
+    pub monoize_mask_sensitive_info: Option<bool>,
     pub monoize_affinity_enabled: Option<bool>,
     pub monoize_affinity_idle_ttl_seconds: Option<u64>,
     pub monoize_affinity_failback_mode: Option<AffinityFailbackMode>,
@@ -208,6 +209,9 @@ pub async fn update_settings(
     if let Some(v) = body.monoize_request_capture_retention_days {
         settings.monoize_request_capture_retention_days = v.max(1);
     }
+    if let Some(v) = body.monoize_mask_sensitive_info {
+        settings.monoize_mask_sensitive_info = v;
+    }
     if let Some(v) = body.monoize_affinity_enabled {
         settings.monoize_affinity_enabled = v;
     }
@@ -249,6 +253,7 @@ pub async fn update_settings(
         rt.strip_cross_protocol_nested_extra = updated.monoize_strip_cross_protocol_nested_extra;
         rt.request_capture_enabled = updated.monoize_request_capture_enabled;
         rt.request_capture_retention_days = updated.monoize_request_capture_retention_days.max(1);
+        rt.mask_sensitive_info = updated.monoize_mask_sensitive_info;
         rt.affinity_enabled = updated.monoize_affinity_enabled;
         rt.affinity_idle_ttl_seconds = updated.monoize_affinity_idle_ttl_seconds.max(1);
         rt.affinity_failback_mode = updated.monoize_affinity_failback_mode;
