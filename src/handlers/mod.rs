@@ -93,11 +93,11 @@ fn apply_first_model_redirect(
     rules: &[crate::users::ModelRedirectRule],
 ) -> bool {
     for rule in rules {
-        if let Some(re) = cached_redirect_regex(&rule.pattern) {
-            if re.is_match(model) {
-                *model = rule.replace.clone();
-                return true;
-            }
+        if let Some(re) = cached_redirect_regex(&rule.pattern)
+            && re.is_match(model)
+        {
+            *model = rule.replace.clone();
+            return true;
         }
     }
     false
