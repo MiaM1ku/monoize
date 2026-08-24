@@ -445,7 +445,7 @@ FL7a. The filter-control area MUST display the total charge sum for the current 
 
 FL7b. `/dashboard/logs` MUST read the optional `username` query parameter. For an admin viewer, a non-empty `username` value MUST initialize the username filter to that exact string. An absent or empty `username` query parameter MUST initialize the filter to empty (all users). Non-admin viewers MUST ignore the query parameter.
 
-FL8. Column order (left to right): `created_at`, `request_id` (with adjacent status indicator), `model` (ModelBadge), `api_key_name`, `[username]` (admin), `[channel]` (admin, with tooltip showing provider context), `duration/ttfb/stream` (merged badges), `input_tokens` (input), `output_tokens` (output), `charge_nano_usd` (cost), `request_ip`.
+FL8. Column order (left to right): `created_at + request_id` (one merged column: line 1 is `created_at`, line 2 is the request-id fragment with adjacent status indicator, plus — only when `has_capture == true` — the right-aligned capture-viewer button per `request-capture-viewer.spec.md` RCV-F2), `model` (ModelBadge), `api_key_name`, `[username]` (admin), `[channel]` (admin, with tooltip showing provider context), `duration/ttfb/stream` (merged badges), `input_tokens` (input), `output_tokens` (output), `charge_nano_usd` (cost), `request_ip`.
 
 FL9. For the admin channel column display value:
 
