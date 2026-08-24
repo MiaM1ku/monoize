@@ -591,7 +591,7 @@ export function RequestLogsPage() {
 										type='button'
 										variant='outline'
 										size='icon'
-										className='h-9 w-9'
+										className='size-11 touch-manipulation sm:size-9'
 										onClick={() => {
 											void mutate()
 										}}
@@ -607,7 +607,7 @@ export function RequestLogsPage() {
 										type='button'
 										variant='outline'
 										size='icon'
-										className='h-9 w-9'
+										className='size-11 touch-manipulation sm:size-9'
 										onClick={() => setShowIp(prev => !prev)}
 										title={showIp ? t('requestLogs.hideIp') : t('requestLogs.showIp')}
 										aria-label={showIp ? t('requestLogs.hideIp') : t('requestLogs.showIp')}

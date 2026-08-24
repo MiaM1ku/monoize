@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Info, Zap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
 	Tooltip,
@@ -338,7 +339,7 @@ export function LogRowCells({
 			<Badge
 				variant='secondary'
 				className={cn(
-					'text-[10px] h-5 px-1 font-mono rounded-full border-0 cursor-default',
+					'h-5 px-1 font-mono cursor-default border-0',
 					'bg-muted text-muted-foreground'
 				)}
 			>
@@ -349,7 +350,7 @@ export function LogRowCells({
 		ttfb ?
 			<Badge
 				variant='secondary'
-				className='text-[10px] h-5 px-1 font-mono rounded-full border-info-border bg-info-soft text-info-foreground'
+				className='h-5 px-1 font-mono border-info-border bg-info-soft text-info-foreground'
 			>
 				{ttfb}
 			</Badge>
@@ -358,7 +359,7 @@ export function LogRowCells({
 		hasTriedProviders ?
 			<Badge
 				variant='secondary'
-				className='text-[10px] h-5 px-1 font-mono rounded-full border-warning-border bg-warning-soft text-warning-foreground'
+				className='h-5 px-1 font-mono border-warning-border bg-warning-soft text-warning-foreground'
 			>
 				{t('requestLogs.retryHopCount', { count: triedProviders.length })}
 			</Badge>
@@ -366,13 +367,13 @@ export function LogRowCells({
 	const streamBadge = log.is_stream ?
 		<Badge
 			variant='secondary'
-			className='text-[10px] h-5 px-1 font-mono rounded-full border-info-border bg-info-soft text-info-foreground'
+			className='h-5 px-1 font-mono border-info-border bg-info-soft text-info-foreground'
 		>
 			{t('requestLogs.streamBadge')}
 		</Badge>
 	:	<Badge
 			variant='secondary'
-			className='text-[10px] h-5 px-1 font-mono rounded-full border-warning-border bg-warning-soft text-warning-foreground'
+			className='h-5 px-1 font-mono border-warning-border bg-warning-soft text-warning-foreground'
 		>
 			{t('requestLogs.nonStreamBadge')}
 		</Badge>
@@ -535,7 +536,7 @@ export function LogRowCells({
 									multiplier={log.provider.multiplier}
 									showDetails={false}
 									truncateModelText={false}
-									className='text-[10px] h-5 px-1.5 min-w-max'
+									className='h-5 px-1.5 min-w-max'
 								/>
 							</span>
 						</TooltipTrigger>
@@ -578,7 +579,7 @@ export function LogRowCells({
 				</TooltipProvider>
 			</td>
 
-			<td className='px-2 py-1 whitespace-nowrap align-middle text-[11px] leading-4 text-muted-foreground'>
+			<td className='px-2 py-1 whitespace-nowrap align-middle text-muted-foreground'>
 				<TooltipProvider delayDuration={200}>
 					<Tooltip onOpenChange={tokenTooltipOpenChange}>
 						<TooltipTrigger asChild>
@@ -600,7 +601,7 @@ export function LogRowCells({
 			</td>
 
 			{isAdmin && (
-				<td className='px-2 py-1 whitespace-nowrap align-middle text-[11px] leading-4 text-muted-foreground'>
+				<td className='px-2 py-1 whitespace-nowrap align-middle text-muted-foreground'>
 					<span className='inline-flex h-4 items-center max-w-[5rem] truncate'>
 						{log.user.username || '-'}
 					</span>
@@ -608,7 +609,7 @@ export function LogRowCells({
 			)}
 
 			{isAdmin && (
-				<td className='px-2 py-1 align-middle text-[11px] leading-4 text-muted-foreground'>
+				<td className='px-2 py-1 align-middle text-muted-foreground'>
 					{channelPrimaryText ? (
 						<TooltipProvider delayDuration={200}>
 							<Tooltip onOpenChange={channelTooltipOpenChange}>
@@ -619,14 +620,14 @@ export function LogRowCells({
 											{affinityHit ?
 												<Badge
 													variant='secondary'
-													className='h-4 shrink-0 px-1 text-[10px] font-normal rounded-full border-info-border bg-info-soft text-info-foreground'
+													className='h-5 shrink-0 px-1 font-normal border-info-border bg-info-soft text-info-foreground'
 												>
 													{t('requestLogs.stickySession')}
 												</Badge>
 											:	null}
 										</span>
 										{retryChainText ?
-											<span className='max-w-full truncate text-[10px] text-warning'>
+											<span className='max-w-full truncate text-warning'>
 												{retryChainText}
 											</span>
 										:	null}
@@ -704,13 +705,13 @@ export function LogRowCells({
 					<Tooltip onOpenChange={inputTooltipOpenChange}>
 						<TooltipTrigger asChild>
 							<span className='inline-flex cursor-default flex-col items-end leading-tight'>
-								<span className='text-sm font-medium tabular-nums'>
+								<span className='tabular-nums'>
 									{inputCached != null
 										? formatTokenCount(inputUncached)
 										: formatTokenCount(inputTokensForDisplay)}
 								</span>
 								{inputCached ? (
-									<span className='text-[10px] text-success'>
+									<span className='text-success'>
 										{t('requestLogs.cachedInput')} {formatTokenCount(inputCached)}
 									</span>
 								) : null}
@@ -743,7 +744,7 @@ export function LogRowCells({
 				<TooltipProvider delayDuration={200}>
 					<Tooltip onOpenChange={outputTooltipOpenChange}>
 						<TooltipTrigger asChild>
-							<span className='cursor-default'>
+							<span className='cursor-default tabular-nums'>
 								{formatTokenCount(outputTokensForDisplay)}
 							</span>
 						</TooltipTrigger>
@@ -911,12 +912,14 @@ export function LogRowCells({
 								)}
 								{isEstimatedBilling && (
 									<div className='text-warning text-xs flex items-center gap-1'>
-										⚡ {t('requestLogs.estimatedBilling')}
+										<Zap className='h-3 w-3 shrink-0' />
+										{t('requestLogs.estimatedBilling')}
 									</div>
 								)}
 								{isAdminUnpricedExemption && (
 									<div className='text-warning text-xs flex items-center gap-1'>
-										ℹ {t('requestLogs.adminUnpricedExemption')}
+										<Info className='h-3 w-3 shrink-0' />
+										{t('requestLogs.adminUnpricedExemption')}
 									</div>
 								)}
 									<div className='border-t border-muted pt-2 mt-2'>
@@ -943,7 +946,7 @@ export function LogRowCells({
 				)}
 			</td>
 
-			<td className='pl-2 pr-2 py-1 whitespace-nowrap font-mono text-muted-foreground text-[11px] align-middle'>
+			<td className='pl-2 pr-2 py-1 whitespace-nowrap font-mono text-muted-foreground align-middle'>
 				<span
 					className={cn(
 						'inline-block align-bottom transition-[filter] duration-150',
