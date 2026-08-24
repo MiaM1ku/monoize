@@ -65,12 +65,35 @@ fn ensure_model_allowed(auth: &crate::auth::AuthResult, logical_model: &str) -> 
     ))
 }
 
+/// Returns the anchored compiled regex for one redirect rule pattern, reusing
+/// a process-wide cache so the hot request path does not recompile per call.
+/// Patterns are validated at rule write time, so compilation failures are
+/// limited to legacy rows; those return `None` and the rule is skipped, which
+/// matches the previous per-call compile-and-skip behavior.
+fn cached_redirect_regex(pattern: &str) -> Option<Arc<regex::Regex>> {
+    static CACHE: std::sync::OnceLock<dashmap::DashMap<String, Arc<regex::Regex>>> =
+        std::sync::OnceLock::new();
+    const MAX_CACHED_PATTERNS: usize = 512;
+    let cache = CACHE.get_or_init(dashmap::DashMap::new);
+    if let Some(existing) = cache.get(pattern) {
+        return Some(existing.clone());
+    }
+    let compiled = Arc::new(regex::Regex::new(&format!("^(?:{pattern})$")).ok()?);
+    // The configured rule set is small (32 per scope); the bound only guards
+    // against unbounded growth across config churn. Past the bound the regex
+    // is still returned uncached, so matching behavior never changes.
+    if cache.len() < MAX_CACHED_PATTERNS {
+        cache.insert(pattern.to_string(), compiled.clone());
+    }
+    Some(compiled)
+}
+
 fn apply_first_model_redirect(
     model: &mut String,
     rules: &[crate::users::ModelRedirectRule],
 ) -> bool {
     for rule in rules {
-        if let Ok(re) = regex::Regex::new(&format!("^(?:{})$", rule.pattern)) {
+        if let Some(re) = cached_redirect_regex(&rule.pattern) {
             if re.is_match(model) {
                 *model = rule.replace.clone();
                 return true;
