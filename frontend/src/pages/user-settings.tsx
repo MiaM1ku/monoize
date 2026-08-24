@@ -19,6 +19,7 @@ import { PageWrapper, StaggerList, StaggerItem, motion, transitions } from "@/co
 import { PageHeader } from "@/components/ui/page-header";
 import { setLanguage, getCurrentLanguage } from "@/i18n";
 import { updateMeOptimistic } from "@/lib/swr";
+import { api } from "@/lib/api";
 import { formatUsdDecimal } from "@/lib/exact-decimal";
 import { getGravatarUrl } from "@/lib/utils";
 import { GroupsBadge } from "@/components/GroupsBadge";
@@ -28,6 +29,7 @@ export function UserSettingsPage() {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
   const { theme, setTheme } = useTheme();
+  const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -38,16 +40,21 @@ export function UserSettingsPage() {
   const currentLang = getCurrentLanguage();
 
   const handleSavePassword = async () => {
-    if (!password || password !== confirmPassword) return;
+    if (!currentPassword || !password || password !== confirmPassword) return;
     setSaving(true);
-    // TODO: Implement password change API
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await api.updateMe({ password, current_password: currentPassword });
       setSaved(true);
+      setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
+      toast.success(t("userSettings.passwordChanged"));
       setTimeout(() => setSaved(false), 2000);
-    }, 1000);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("common.error"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveEmail = async () => {
@@ -215,6 +222,16 @@ export function UserSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="current-password">{t("userSettings.currentPassword")}</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="new-password">{t("userSettings.newPassword")}</Label>
                 <Input
                   id="new-password"
@@ -236,7 +253,7 @@ export function UserSettingsPage() {
               </div>
               <Button
                 onClick={handleSavePassword}
-                disabled={saving || !password || password !== confirmPassword}
+                disabled={saving || !currentPassword || !password || password !== confirmPassword}
               >
                 <Save className="mr-2 h-4 w-4" />
                 {saving ? t("common.saving") : saved ? t("common.saved") : t("userSettings.changePassword")}

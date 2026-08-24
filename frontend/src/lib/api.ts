@@ -823,7 +823,11 @@ class ApiClient {
     return this.request(`/billing-plans/${id}/reset`, { method: "POST" });
   }
 
-  async updateMe(updates: { email?: string | null }): Promise<User> {
+  async updateMe(updates: {
+    email?: string | null;
+    password?: string;
+    current_password?: string;
+  }): Promise<User> {
     return this.request("/auth/me", {
       method: "PUT",
       body: JSON.stringify(updates),

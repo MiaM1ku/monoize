@@ -145,6 +145,9 @@ fn map_user_response_error(error: String) -> AppError {
 #[derive(Debug, Deserialize)]
 pub struct UpdateMeRequest {
     pub email: Option<Option<String>>,
+    /// U8a: optional self-service password change; requires `current_password`.
+    pub password: Option<String>,
+    pub current_password: Option<String>,
 }
 
 pub async fn register(
@@ -359,11 +362,44 @@ pub async fn update_me(
 
     let user_store = &state.user_store;
 
+    // U8a: a password change is all-or-nothing for the whole request, so the
+    // current-password check runs before any field is written.
+    if let Some(ref password) = body.password {
+        if password.len() < 8 {
+            return Err(AppError::new(
+                StatusCode::BAD_REQUEST,
+                "invalid_password",
+                "password must be at least 8 characters",
+            ));
+        }
+        let current = body
+            .current_password
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| {
+                AppError::new(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_password",
+                    "current_password is required to change password",
+                )
+            })?;
+        let valid = crate::users::UserStore::verify_password(current, &user.password_hash)
+            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal_error", e))?;
+        if !valid {
+            return Err(AppError::new(
+                StatusCode::UNAUTHORIZED,
+                "invalid_credentials",
+                "current password is incorrect",
+            ));
+        }
+    }
+
     user_store
         .update_user(
             &user.id,
             None,
-            None,
+            body.password.as_deref(),
             None,
             None,
             None,

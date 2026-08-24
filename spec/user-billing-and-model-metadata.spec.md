@@ -58,6 +58,14 @@ U7. `email` is an optional field (`TEXT NULL` in SQLite). When set, it MUST be a
 
 U8. Any authenticated user MAY update their own `email` field via `PUT /api/dashboard/auth/me` with optional body field `email: string | null`. Setting `email` to `null` or empty string MUST clear the stored value.
 
+U8a. Any authenticated user MAY change their own password via `PUT /api/dashboard/auth/me` with optional body fields `password: string` and `current_password: string`. When `password` is present:
+1. `password` MUST be at least 8 characters; otherwise the server responds `400 invalid_password`.
+2. `current_password` MUST be present and non-empty; otherwise the server responds `400 invalid_password`.
+3. `current_password` MUST verify against the stored password hash; otherwise the server responds `401 invalid_credentials` and no field in the request is applied.
+4. On success the stored hash is replaced with the Argon2 hash of `password`; a subsequent login MUST succeed with the new password and MUST fail with the old password. Existing sessions remain valid (identical to the admin password-reset path).
+
+U8b. The `/dashboard/settings` (user settings) security card MUST submit `current_password` together with the new password, MUST NOT report success without a `2xx` response from `PUT /api/dashboard/auth/me`, and MUST surface a server error message in a toast on failure.
+
 U9. Admin users MAY also update a user's `email` via `PUT /api/dashboard/users/{user_id}` with optional body field `email: string | null`.
 
 U10. Dashboard frontend MUST generate Gravatar URLs from user email using the MD5 hash of the lowercase-trimmed email, per the Gravatar protocol (`https://www.gravatar.com/avatar/{md5}?d=identicon&s={size}`). If the user has no email set, the frontend MUST fall back to displaying the first character of the username as the avatar.
