@@ -1,0 +1,19 @@
+{
+  "name": "Monoize",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cargo run"
+    },
+    {
+      "name": "frontend",
+      "command": "export PATH=\"$HOME/.bun/bin:$PATH\" && cd frontend && bun run dev --host"
+    }
+  ],
+  "ports": [
+    { "name": "backend", "port": 8080 },
+    { "name": "frontend", "port": 5173 }
+  ]
+}
