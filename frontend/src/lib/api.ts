@@ -109,6 +109,9 @@ export interface ModelRedirectRule {
 
 export type RequestCaptureMode = "off" | "capture-all" | "capture-only-abnormal";
 
+/** Per-key capture retention (RCD-C5a, `request-capture-dumps.spec.md`). */
+export type RequestCaptureRetention = "5m" | "1h" | "24h" | "7d";
+
 export interface ApiKey {
   id: string;
   name: string;
@@ -131,6 +134,7 @@ export interface ApiKey {
   model_redirects: ModelRedirectRule[];
   reasoning_envelope_enabled: boolean;
   request_capture_mode: RequestCaptureMode;
+  request_capture_retention: RequestCaptureRetention;
 }
 
 export type ApiKeyCreated = ApiKey;
@@ -150,6 +154,7 @@ export interface CreateApiKeyInput {
   model_redirects?: ModelRedirectRule[];
   reasoning_envelope_enabled?: boolean;
   request_capture_mode?: RequestCaptureMode;
+  request_capture_retention?: RequestCaptureRetention;
 }
 
 export interface UpdateApiKeyInput {
@@ -168,6 +173,7 @@ export interface UpdateApiKeyInput {
   model_redirects?: ModelRedirectRule[];
   reasoning_envelope_enabled?: boolean;
   request_capture_mode?: RequestCaptureMode;
+  request_capture_retention?: RequestCaptureRetention;
 }
 
 export interface SystemSettings {
@@ -201,7 +207,7 @@ export interface SystemSettings {
   monoize_extra_fields_whitelist: Record<string, string[]>;
   monoize_strip_cross_protocol_nested_extra: boolean;
   monoize_request_capture_enabled: boolean;
-  monoize_request_capture_retention_days: number;
+  monoize_request_capture_max_total_bytes: number;
   monoize_mask_sensitive_info: boolean;
   pricing_profile_model_patterns: PricingProfilePattern[];
   updated_at: string;
@@ -607,6 +613,8 @@ export interface CaptureAttempt {
   transformed_urp_request: unknown;
   upstream_request: unknown;
   downstream_response?: unknown;
+  /** URP non-stream reconstruction of a pass-through stream (RCD-D10a). */
+  reconstructed_urp_response?: unknown;
   downstream_sse_frames?: string[] | null;
   downstream_sse_frames_truncation?: CaptureFrameTruncation;
   transform_chain?: CaptureTransformChainEntry[] | null;
