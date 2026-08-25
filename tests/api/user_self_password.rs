@@ -26,7 +26,7 @@ async fn setup_self_password() -> PasswordTestContext {
     .expect("state loads");
     let user = state
         .user_store
-        .create_user("self_password_user", "original-password", UserRole::User, &[])
+        .create_user("self_password_user", "original-password", UserRole::User, None)
         .await
         .expect("user created");
     let session = state
