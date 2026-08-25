@@ -46,6 +46,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260823_000037_billing_plan_cron_schedule::Migration),
             Box::new(m20260824_000038_request_log_session_affinity::Migration),
             Box::new(m20260824_000039_request_capture_records::Migration),
+            Box::new(m20260825_000039_groups_registry::Migration),
         ]
     }
 }
@@ -221,6 +222,7 @@ mod m20260823_000036_channel_session_affinity_auto;
 mod m20260823_000037_billing_plan_cron_schedule;
 mod m20260824_000038_request_log_session_affinity;
 mod m20260824_000039_request_capture_records;
+mod m20260825_000039_groups_registry;
 
 #[cfg(test)]
 mod tests {

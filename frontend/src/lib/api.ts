@@ -1,12 +1,37 @@
 const API_BASE = "/api/dashboard";
 
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  is_default: boolean;
+  user_selectable: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateGroupInput {
+  name: string;
+  description?: string;
+  user_selectable?: boolean;
+  sort_order?: number;
+}
+
+export interface UpdateGroupInput {
+  name?: string;
+  description?: string;
+  user_selectable?: boolean;
+  sort_order?: number;
+}
+
 export interface UserBillingPlan {
   id: string;
   name: string;
   grant_amount_nano_usd: string;
   grant_amount_usd: string;
   schedule: string;
-  allowed_groups: string[];
+  group_ids: string[];
   enabled: boolean;
 }
 
@@ -21,7 +46,7 @@ export interface User {
   balance_usd: string;
   balance_unlimited: boolean;
   email?: string | null;
-  allowed_groups: string[];
+  group_id: string;
   billing_plan_id?: string | null;
   next_grant_at?: string | null;
   billing_plan?: UserBillingPlan | null;
@@ -36,7 +61,7 @@ export interface BillingPlan {
   grant_amount_nano_usd: string;
   grant_amount_usd: string;
   schedule: string;
-  allowed_groups: string[];
+  group_ids: string[];
   enabled: boolean;
   created_at: string;
   updated_at: string;
@@ -47,7 +72,7 @@ export interface BillingPlanInput {
   grant_amount_nano_usd?: string;
   grant_amount_usd?: string;
   schedule: string;
-  allowed_groups?: string[];
+  group_ids?: string[];
   enabled?: boolean;
 }
 
@@ -99,7 +124,8 @@ export interface ApiKey {
   model_limits_enabled: boolean;
   model_limits: string[];
   ip_whitelist: string[];
-  allowed_groups: string[];
+  use_user_group: boolean;
+  group_ids: string[];
   max_multiplier?: string;
   transforms: TransformRuleConfig[];
   model_redirects: ModelRedirectRule[];
@@ -117,7 +143,8 @@ export interface CreateApiKeyInput {
   model_limits_enabled?: boolean;
   model_limits?: string[];
   ip_whitelist?: string[];
-  allowed_groups?: string[];
+  use_user_group?: boolean;
+  group_ids?: string[];
   max_multiplier?: string;
   transforms?: TransformRuleConfig[];
   model_redirects?: ModelRedirectRule[];
@@ -133,7 +160,8 @@ export interface UpdateApiKeyInput {
   model_limits_enabled?: boolean;
   model_limits?: string[];
   ip_whitelist?: string[];
-  allowed_groups?: string[];
+  use_user_group?: boolean;
+  group_ids?: string[];
   max_multiplier?: string;
   transforms?: TransformRuleConfig[];
   expires_at?: string;
@@ -195,7 +223,7 @@ export interface DashboardStats {
 }
 
 export interface DashboardGroupsResponse {
-  groups: string[];
+  groups: Group[];
 }
 
 export interface ConfigOverview {
@@ -280,7 +308,7 @@ export interface Provider {
   request_timeout_ms_override?: number | null;
   extra_fields_whitelist?: string[] | null;
   strip_cross_protocol_nested_extra?: boolean | null;
-  groups: string[];
+  group_ids: string[];
   enabled: boolean;
   priority: number;
   created_at: string;
@@ -332,7 +360,7 @@ export interface CreateProviderInput {
   request_timeout_ms_override?: number | null;
   extra_fields_whitelist?: string[] | null;
   strip_cross_protocol_nested_extra?: boolean | null;
-  groups?: string[];
+  group_ids?: string[];
   enabled?: boolean;
   priority?: number;
 }
@@ -354,7 +382,7 @@ export interface UpdateProviderInput {
   request_timeout_ms_override?: number | null;
   extra_fields_whitelist?: string[] | null;
   strip_cross_protocol_nested_extra?: boolean | null;
-  groups?: string[];
+  group_ids?: string[];
   enabled?: boolean;
   priority?: number;
 }
@@ -823,11 +851,11 @@ class ApiClient {
     username: string,
     password: string,
     role?: string,
-    allowed_groups?: string[]
+    group_id?: string
   ): Promise<User> {
     return this.request("/users", {
       method: "POST",
-      body: JSON.stringify({ username, password, role, allowed_groups }),
+      body: JSON.stringify({ username, password, role, group_id }),
     });
   }
 
@@ -842,7 +870,7 @@ class ApiClient {
       balance_usd?: string;
       balance_unlimited?: boolean;
       email?: string | null;
-      allowed_groups?: string[];
+      group_id?: string;
       billing_plan_id?: string | null;
     }
   ): Promise<User> {
@@ -967,6 +995,27 @@ class ApiClient {
 
   async listDashboardGroups(): Promise<DashboardGroupsResponse> {
     return this.request("/groups");
+  }
+
+  // Groups registry (admin CRUD)
+  async createGroup(input: CreateGroupInput): Promise<Group> {
+    return this.request("/groups", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  }
+
+  async updateGroup(id: string, input: UpdateGroupInput): Promise<Group> {
+    return this.request(`/groups/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    });
+  }
+
+  async deleteGroup(id: string): Promise<{ success: boolean }> {
+    return this.request(`/groups/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
   }
 
   // Providers

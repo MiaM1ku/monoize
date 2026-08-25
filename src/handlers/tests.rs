@@ -369,7 +369,7 @@ async fn seed_group_routing_provider(
     state: &AppState,
     name: &str,
     circuit_breaker_enabled: bool,
-    groups: Vec<String>,
+    group_ids: Vec<String>,
     channels: Vec<CreateMonoizeChannelInput>,
 ) {
     state
@@ -392,7 +392,7 @@ async fn seed_group_routing_provider(
             strip_cross_protocol_nested_extra: None,
             enabled: true,
             priority: Some(0),
-            groups,
+            group_ids,
             channels,
         })
         .await
@@ -489,7 +489,7 @@ async fn routing_uses_channel_model_multiplier_and_redirect_per_attempt() {
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
         })
@@ -1517,7 +1517,7 @@ async fn resolve_model_suffix_preserves_reasoning_effort_on_attempt_base_request
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
             channels: vec![CreateMonoizeChannelInput {
@@ -1642,7 +1642,7 @@ async fn build_monoize_attempts_rejects_unpriced_models_before_forwarding() {
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
             channels: vec![CreateMonoizeChannelInput {
@@ -1722,7 +1722,7 @@ async fn build_monoize_attempts_rejects_admin_unpriced_models_without_pricing() 
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
             channels: vec![CreateMonoizeChannelInput {
@@ -1801,7 +1801,7 @@ async fn build_monoize_attempts_rejects_admin_missing_server_tool_meter_rate() {
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
             channels: vec![CreateMonoizeChannelInput {
@@ -1883,7 +1883,7 @@ async fn build_monoize_attempts_accepts_redirected_model_when_logical_fallback_i
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
             channels: vec![CreateMonoizeChannelInput {
@@ -2013,7 +2013,7 @@ async fn build_monoize_attempts_uses_metadata_pricing_profile_fallback() {
             request_timeout_ms_override: None,
             extra_fields_whitelist: None,
             strip_cross_protocol_nested_extra: None,
-            groups: Vec::new(),
+            group_ids: Vec::new(),
             enabled: true,
             priority: Some(0),
             channels: vec![CreateMonoizeChannelInput {
@@ -2093,7 +2093,33 @@ async fn build_monoize_attempts_filters_providers_by_effective_groups_before_hea
         node: crate::node_config::NodeSettings::primary_default(),
     };
     let state = load_state_with_runtime(runtime).await.expect("state loads");
+    let default_group_id = state
+        .user_store
+        .default_group_id()
+        .await
+        .expect("default group exists");
+    let team_a_group = state
+        .user_store
+        .create_group(crate::users::CreateGroupInput {
+            name: "team-a".to_string(),
+            description: String::new(),
+            user_selectable: true,
+            sort_order: 1,
+        })
+        .await
+        .expect("team-a group created");
+    let team_b_group = state
+        .user_store
+        .create_group(crate::users::CreateGroupInput {
+            name: "team-b".to_string(),
+            description: String::new(),
+            user_selectable: true,
+            sort_order: 2,
+        })
+        .await
+        .expect("team-b group created");
 
+    // GR-I2: an empty selection binds the provider to the default group.
     seed_group_routing_provider(
         &state,
         "public-provider",
@@ -2137,7 +2163,7 @@ async fn build_monoize_attempts_filters_providers_by_effective_groups_before_hea
         &state,
         "team-a-provider",
         false,
-        vec!["team-a".to_string()],
+        vec![team_a_group.id.clone()],
         vec![CreateMonoizeChannelInput {
             id: Some("team-a".to_string()),
             name: "team-a".to_string(),
@@ -2176,7 +2202,7 @@ async fn build_monoize_attempts_filters_providers_by_effective_groups_before_hea
         &state,
         "team-b-provider",
         false,
-        vec!["team-b".to_string()],
+        vec![team_b_group.id.clone()],
         vec![CreateMonoizeChannelInput {
             id: Some("team-b".to_string()),
             name: "team-b".to_string(),
@@ -2215,18 +2241,19 @@ async fn build_monoize_attempts_filters_providers_by_effective_groups_before_hea
 
     let req = build_test_routing_request(GROUP_ROUTING_MODEL);
 
+    // R-GRP-1: None marks internal traffic and bypasses group filtering.
     let unrestricted_auth = build_test_auth(None);
     let unrestricted = build_monoize_attempts(&state, &req, &unrestricted_auth)
         .await
         .expect("unrestricted routing succeeds");
-    let team_a_auth = build_test_auth(Some(vec!["team-a".to_string()]));
+    let team_a_auth = build_test_auth(Some(vec![team_a_group.id.clone()]));
     let team_a = build_monoize_attempts(&state, &req, &team_a_auth)
         .await
         .expect("team-a routing succeeds");
-    let public_only_auth = build_test_auth(Some(Vec::new()));
-    let public_only = build_monoize_attempts(&state, &req, &public_only_auth)
+    let default_only_auth = build_test_auth(Some(vec![default_group_id]));
+    let default_only = build_monoize_attempts(&state, &req, &default_only_auth)
         .await
-        .expect("public-only routing succeeds");
+        .expect("default-group routing succeeds");
 
     assert_eq!(
         attempt_channel_ids(&unrestricted),
@@ -2234,7 +2261,7 @@ async fn build_monoize_attempts_filters_providers_by_effective_groups_before_hea
     );
     assert_eq!(attempt_channel_ids(&team_a), BTreeSet::from(["team-a"]));
     assert_eq!(
-        attempt_channel_ids(&public_only),
+        attempt_channel_ids(&default_only),
         BTreeSet::from(["public"])
     );
 }
@@ -2250,12 +2277,32 @@ async fn execute_nonstream_typed_keeps_bad_gateway_when_groups_filter_every_chan
         node: crate::node_config::NodeSettings::primary_default(),
     };
     let state = load_state_with_runtime(runtime).await.expect("state loads");
+    let team_a_group = state
+        .user_store
+        .create_group(crate::users::CreateGroupInput {
+            name: "team-a".to_string(),
+            description: String::new(),
+            user_selectable: true,
+            sort_order: 1,
+        })
+        .await
+        .expect("team-a group created");
+    let team_b_group = state
+        .user_store
+        .create_group(crate::users::CreateGroupInput {
+            name: "team-b".to_string(),
+            description: String::new(),
+            user_selectable: true,
+            sort_order: 2,
+        })
+        .await
+        .expect("team-b group created");
 
     seed_group_routing_provider(
         &state,
         "team-a-provider",
         true,
-        vec!["team-a".to_string()],
+        vec![team_a_group.id.clone()],
         vec![CreateMonoizeChannelInput {
             id: Some("team-a".to_string()),
             name: "team-a".to_string(),
@@ -2293,7 +2340,7 @@ async fn execute_nonstream_typed_keeps_bad_gateway_when_groups_filter_every_chan
 
     let err = execute_nonstream_typed(
         &state,
-        &build_test_auth(Some(Vec::new())),
+        &build_test_auth(Some(vec![team_b_group.id.clone()])),
         build_test_urp_request(GROUP_ROUTING_MODEL),
         None,
         DownstreamProtocol::ChatCompletions,
@@ -2306,7 +2353,7 @@ async fn execute_nonstream_typed_keeps_bad_gateway_when_groups_filter_every_chan
         },
     )
     .await
-    .expect_err("public-only restriction should leave no attempts");
+    .expect_err("non-overlapping group restriction should leave no attempts");
 
     assert_eq!(err.status, StatusCode::BAD_GATEWAY);
     assert_eq!(err.code, "upstream_error");
