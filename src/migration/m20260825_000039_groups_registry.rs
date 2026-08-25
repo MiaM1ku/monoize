@@ -630,9 +630,11 @@ mod tests {
 
         {
             let write = db.write().await;
-            Migrator::down(&*write, Some(1))
+            // Two steps: m20260825_000040 (capture retention) sits above this
+            // migration, so restoring the legacy label schema reverts both.
+            Migrator::down(&*write, Some(2))
                 .await
-                .expect("one-step down restores legacy schema");
+                .expect("two-step down restores legacy schema");
         }
 
         // Plant legacy labels exactly as the pre-registry system stored them.
