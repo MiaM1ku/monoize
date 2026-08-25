@@ -7,6 +7,7 @@ mod billing_rates;
 mod groups;
 mod model_registry;
 mod providers;
+mod request_captures;
 mod session_helpers;
 mod settings;
 mod users;
@@ -44,6 +45,8 @@ pub use model_registry::{
     list_marketplace_models, list_model_metadata, list_models, sync_model_metadata_models_dev,
     update_model, upsert_model_metadata,
 };
+pub use request_captures::{RequestCaptureQuery, get_request_capture};
+
 pub use providers::{
     FetchChannelModelsRequest, TestChannelRequest, create_provider, delete_provider,
     fetch_channel_models, fetch_provider_models, get_provider, get_provider_presets,

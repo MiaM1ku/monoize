@@ -288,7 +288,9 @@ RL19. For active probe logs, `api_key_id` MUST be null and UI token column label
 }
 ```
 
-Where `EnrichedRequestLogRow` = `RequestLogRow` + `username` + `api_key_name` + `channel_name` + `provider_name`.
+Where `EnrichedRequestLogRow` = `RequestLogRow` + `username` + `api_key_name` + `channel_name` + `provider_name` + `has_capture`.
+
+RL-API14. Every `EnrichedRequestLogRow` MUST include `has_capture: boolean` computed per `request-capture-viewer.spec.md` RCV-L1/RCV-L2: `true` iff at least one `request_capture_records` row matches the row's `(request_id, user_id)`, computed with an indexed `EXISTS` subquery. The list path MUST NOT open, stat, or read dump files. SSE-delivered rows carry `has_capture: false` (RCV-L3).
 
 RL-API6. `total_charge_nano_usd` MUST equal the SUM of `charge_nano_usd` across all rows matching the active filters (not just the current page). Rows with null `charge_nano_usd` MUST be treated as 0. The value MUST be a string representation of a non-negative integer (nano-dollar).
 
@@ -451,7 +453,7 @@ FL7b. `/dashboard/logs` MUST read the optional `username` query parameter. For a
 
 FL7c. The free-text search input MUST debounce fetches. A keystroke MUST NOT issue a request-log fetch directly; the client applies the current search text to the active filter set only after 300 ms have elapsed without a further keystroke. Clearing the input follows the same 300 ms rule. Local (client-side) filtering of SSE-delivered rows per FL53 MAY use the debounced value.
 
-FL8. Column order (left to right): `created_at`, `request_id` (with adjacent status indicator), `model` (ModelBadge), `api_key_name`, `[username]` (admin), `[channel]` (admin, with tooltip showing provider context), `duration/ttfb/stream` (merged badges), `input_tokens` (input), `output_tokens` (output), `charge_nano_usd` (cost), `request_ip`.
+FL8. Column order (left to right): `created_at + request_id` (one merged column: line 1 is `created_at`, line 2 is the request-id fragment with adjacent status indicator, plus — only when `has_capture == true` — the right-aligned capture-viewer button per `request-capture-viewer.spec.md` RCV-F2), `model` (ModelBadge), `api_key_name`, `[username]` (admin), `[channel]` (admin, with tooltip showing provider context), `duration/ttfb/stream` (merged badges), `input_tokens` (input), `output_tokens` (output), `charge_nano_usd` (cost), `request_ip`.
 
 FL9. For the admin channel column display value:
 

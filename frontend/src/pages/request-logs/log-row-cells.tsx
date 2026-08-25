@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Info, Zap } from 'lucide-react'
+import { Info, ScanSearch, Zap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
 	Tooltip,
@@ -39,6 +39,7 @@ interface LogRowCellsProps {
 	isAdmin: boolean
 	showIp: boolean
 	t: (key: string, options?: Record<string, unknown>) => string
+	onOpenCapture: (log: RequestLog) => void
 	onTooltipOpenChange: (tooltipId: string, open: boolean) => void
 }
 
@@ -47,6 +48,7 @@ export function LogRowCells({
 	isAdmin,
 	showIp,
 	t,
+	onOpenCapture,
 	onTooltipOpenChange
 }: LogRowCellsProps) {
 	const rowTooltipIdsRef = useRef<Set<string>>(new Set())
@@ -471,59 +473,74 @@ export function LogRowCells({
 
 	return (
 		<>
-			<td className='pl-2 pr-2 py-1 whitespace-nowrap text-muted-foreground font-mono align-middle'>
-				{formatTime(log.created_at)}
-			</td>
-
-			<td className='px-2 py-1 whitespace-nowrap align-middle'>
-				{log.request_id ? (
-					<TooltipProvider delayDuration={200}>
-						<Tooltip onOpenChange={requestTooltipOpenChange}>
-							<TooltipTrigger asChild>
-								<span className='inline-flex items-center gap-1 font-mono text-muted-foreground cursor-default'>
-									<span>{log.request_id.substring(0, 8)}</span>
-									<span
-										className={cn(
-											'h-1.5 w-1.5 rounded-full',
-											statusIndicatorClass
-										)}
-									/>
-								</span>
-							</TooltipTrigger>
-							<TooltipContent>
-								<div className='text-xs space-y-0.5 max-w-[480px]'>
-									<div className='font-mono'>{log.request_id}</div>
-									{(log.status === 'error' || log.status === 'client_gone') && (
-										<>
-											{log.error.http_status != null && (
-												<div>
-													{t('requestLogs.errorStatus')}: {log.error.http_status}
+			<td className='pl-2 pr-2 py-1 whitespace-nowrap align-middle'>
+				<div className='flex flex-col leading-tight'>
+					<span className='text-muted-foreground font-mono'>
+						{formatTime(log.created_at)}
+					</span>
+					<span className='flex w-full items-center gap-1'>
+						{log.request_id ? (
+							<TooltipProvider delayDuration={200}>
+								<Tooltip onOpenChange={requestTooltipOpenChange}>
+									<TooltipTrigger asChild>
+										<span className='inline-flex items-center gap-1 font-mono text-muted-foreground cursor-default'>
+											<span>{log.request_id.substring(0, 8)}</span>
+											<span
+												className={cn(
+													'h-1.5 w-1.5 rounded-full',
+													statusIndicatorClass
+												)}
+											/>
+										</span>
+									</TooltipTrigger>
+									<TooltipContent>
+										<div className='text-xs space-y-0.5 max-w-[480px]'>
+											<div className='font-mono'>{log.request_id}</div>
+											{(log.status === 'error' || log.status === 'client_gone') && (
+												<>
+													{log.error.http_status != null && (
+														<div>
+															{t('requestLogs.errorStatus')}: {log.error.http_status}
+														</div>
+													)}
+													{log.error.code && (
+														<div>
+															{t('requestLogs.errorCode')}: {log.error.code}
+														</div>
+													)}
+													{log.error.message && (
+														<div className='break-words whitespace-pre-wrap'>
+															{t('requestLogs.errorMessage')}: {log.error.message}
+														</div>
+													)}
+												</>
+											)}
+											{attemptRows.length > 0 && (
+												<div className='border-t border-border/50 pt-1 mt-1'>
+													<RetryAttemptList rows={attemptRows} t={t} />
 												</div>
 											)}
-											{log.error.code && (
-												<div>
-													{t('requestLogs.errorCode')}: {log.error.code}
-												</div>
-											)}
-											{log.error.message && (
-												<div className='break-words whitespace-pre-wrap'>
-													{t('requestLogs.errorMessage')}: {log.error.message}
-												</div>
-											)}
-										</>
-									)}
-									{attemptRows.length > 0 && (
-										<div className='border-t border-border/50 pt-1 mt-1'>
-											<RetryAttemptList rows={attemptRows} t={t} />
 										</div>
-									)}
-								</div>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-				) : (
-					<span className='text-muted-foreground/50'>-</span>
-				)}
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						) : (
+							<span className='text-muted-foreground/50'>-</span>
+						)}
+						{log.has_capture === true && log.request_id ? (
+							<button
+								type='button'
+								aria-label={t('requestLogs.capture.open')}
+								aria-haspopup='dialog'
+								title={t('requestLogs.capture.open')}
+								onClick={() => onOpenCapture(log)}
+								className='ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+							>
+								<ScanSearch className='h-3.5 w-3.5' />
+							</button>
+						) : null}
+					</span>
+				</div>
 			</td>
 
 			<td className='px-2 py-1 align-middle whitespace-nowrap'>
