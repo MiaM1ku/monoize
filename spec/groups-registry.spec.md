@@ -52,7 +52,7 @@ GR-D5. `sort_order` defines the system default ordering. The canonical registry 
 
 | Table               | Column           | Type    | Meaning                                                        |
 |---------------------|------------------|---------|----------------------------------------------------------------|
-| `users`             | `group_id`       | TEXT NOT NULL | The user's single group (single-select)                  |
+| `users`             | `group_id`       | TEXT NOT NULL, default `''` | The user's single group (single-select)    |
 | `api_keys`          | `use_user_group` | INTEGER NOT NULL, `0`/`1`, default `1` | Key inherits the owner's group |
 | `api_keys`          | `group_ids`      | TEXT NOT NULL, default `'[]'` | Ordered JSON array of group ids          |
 | `monoize_providers` | `group_ids`      | TEXT NOT NULL | JSON array of group ids the provider serves; length >= 1 |
