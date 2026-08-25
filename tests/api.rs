@@ -35,3 +35,6 @@ mod request_capture;
 
 #[path = "api/user_self_password.rs"]
 mod user_self_password;
+
+#[path = "api/error_sanitization.rs"]
+mod error_sanitization;
