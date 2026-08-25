@@ -411,6 +411,7 @@ async fn sub_account_zero_balance_returns_402() {
                 model_redirects: Vec::new(),
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )
@@ -464,6 +465,7 @@ async fn ip_whitelist_blocks_non_whitelisted() {
                 model_redirects: Vec::new(),
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )

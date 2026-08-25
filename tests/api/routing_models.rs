@@ -558,6 +558,7 @@ async fn models_list_respects_api_key_model_limits() {
                 model_redirects: Vec::new(),
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )
@@ -623,6 +624,7 @@ async fn models_list_model_limits_disabled_shows_all() {
                 model_redirects: Vec::new(),
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )
@@ -684,6 +686,7 @@ async fn forwarding_rejects_models_outside_api_key_model_limits() {
                 model_redirects: Vec::new(),
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )
@@ -745,6 +748,7 @@ async fn forwarding_applies_api_key_model_redirects_before_model_limits_and_rout
                 }],
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )
@@ -839,6 +843,7 @@ async fn image_generation_applies_api_key_model_redirects_before_model_limits() 
                 }],
                 reasoning_envelope_enabled: true,
                 request_capture_mode: monoize::users::RequestCaptureMode::Off,
+                request_capture_retention: monoize::users::RequestCaptureRetention::default(),
             },
             false,
         )

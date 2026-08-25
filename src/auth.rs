@@ -1,6 +1,6 @@
 use crate::exact_decimal::Multiplier;
 use crate::transforms::TransformRuleConfig;
-use crate::users::{RequestCaptureMode, UserStore, resolve_effective_groups};
+use crate::users::{RequestCaptureMode, RequestCaptureRetention, UserStore, resolve_effective_groups};
 
 /// Result of authentication containing the tenant_id and optionally the user_id
 /// if authenticated via database API key.
@@ -23,6 +23,7 @@ pub struct AuthResult {
     pub sub_account_balance_nano: String,
     pub reasoning_envelope_enabled: bool,
     pub request_capture_mode: RequestCaptureMode,
+    pub request_capture_retention: RequestCaptureRetention,
 }
 
 #[derive(Clone)]
@@ -77,6 +78,7 @@ impl AuthState {
                             sub_account_balance_nano: api_key.sub_account_balance_nano,
                             reasoning_envelope_enabled: api_key.reasoning_envelope_enabled,
                             request_capture_mode: api_key.request_capture_mode,
+                            request_capture_retention: api_key.request_capture_retention,
                         });
                     }
                     Ok(None) => {}
@@ -129,6 +131,7 @@ mod tests {
             model_redirects: Vec::new(),
             reasoning_envelope_enabled: true,
             request_capture_mode: RequestCaptureMode::Off,
+            request_capture_retention: crate::users::RequestCaptureRetention::default(),
         }
     }
 

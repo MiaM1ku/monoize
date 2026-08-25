@@ -2249,6 +2249,7 @@ mod tests {
             model_redirects: Vec::new(),
             reasoning_envelope_enabled: true,
             request_capture_mode: RequestCaptureMode::Off,
+            request_capture_retention: crate::users::RequestCaptureRetention::default(),
         }
     }
 
