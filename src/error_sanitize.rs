@@ -3,8 +3,10 @@
 //! The masking algorithm follows the New API reference implementation
 //! (`relaykit/relayconvert/kitutil/mask.go` in QuantumNous/new-api): URLs,
 //! bare domain names, IPv4 addresses, and `api_key:` values are masked before
-//! upstream-derived error text reaches API clients or persisted request logs.
-//! Raw unmasked detail is written to the server log only.
+//! upstream-derived error text reaches API clients, and again at read time
+//! when a non-admin dashboard user views persisted request-log error detail
+//! (SAN-14). Persisted request-log fields keep the raw truncated detail for
+//! admin visibility; the server tracing log keeps the unbounded raw detail.
 
 use regex::Regex;
 use std::sync::LazyLock;
@@ -143,18 +145,23 @@ mod tests {
         let input = "error sending request for url (https://api.cloudflare.com/client/v4/accounts/ebb3b05a7371fbcbd62bde8264c86cfe/ai/v1/chat/completions)";
         let masked = mask_sensitive_text(input);
         assert!(!masked.contains("cloudflare"), "{masked}");
-        assert!(!masked.contains("ebb3b05a7371fbcbd62bde8264c86cfe"), "{masked}");
+        assert!(
+            !masked.contains("ebb3b05a7371fbcbd62bde8264c86cfe"),
+            "{masked}"
+        );
         assert!(!masked.contains("accounts"), "{masked}");
         assert!(masked.contains("https://***.com/***"), "{masked}");
     }
 
     #[test]
     fn masks_url_query_values_and_keeps_keys() {
-        let masked =
-            mask_sensitive_text("GET https://api.test.org/v1/users/123?key=secret failed");
+        let masked = mask_sensitive_text("GET https://api.test.org/v1/users/123?key=secret failed");
         assert!(!masked.contains("secret"), "{masked}");
         assert!(!masked.contains("api.test.org"), "{masked}");
-        assert!(masked.contains("https://***.org/***/***/***?key=***"), "{masked}");
+        assert!(
+            masked.contains("https://***.org/***/***/***?key=***"),
+            "{masked}"
+        );
     }
 
     #[test]
