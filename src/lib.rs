@@ -4,6 +4,7 @@ pub mod billing_rate_store;
 pub(crate) mod bounded_response;
 pub mod client_ip;
 pub mod config;
+pub mod custom_transforms;
 pub mod dashboard_handlers;
 pub mod db;
 pub mod db_cache;
