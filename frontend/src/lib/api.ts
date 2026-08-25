@@ -73,6 +73,8 @@ export interface TransformRegistryItem {
   supported_phases: Phase[];
   supported_scopes: TransformScope[];
   config_schema: Record<string, unknown>;
+  name: Record<string, string>;
+  description: Record<string, string>;
 }
 
 export interface ModelRedirectRule {

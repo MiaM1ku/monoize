@@ -22,12 +22,23 @@ impl TransformConfig for Config {
     }
 }
 
-pub struct AssistantOutputImagesToMarkdownTransform;
+pub struct ImageOutputToMarkdownTransform;
 
 #[async_trait]
-impl Transform for AssistantOutputImagesToMarkdownTransform {
+impl Transform for ImageOutputToMarkdownTransform {
     fn type_id(&self) -> &'static str {
-        "assistant_output_images_to_markdown"
+        "image_output_to_markdown"
+    }
+
+    fn display_name(&self) -> crate::transforms::LocalizedText {
+        &[("en", "Image: image nodes to Markdown"), ("zh", "图像：图像节点转 Markdown")]
+    }
+
+    fn display_description(&self) -> crate::transforms::LocalizedText {
+        &[
+            ("en", "Renders assistant image nodes as Markdown image links appended to assistant text output. Inverse of image_markdown_to_output."),
+            ("zh", "将 assistant 图像节点渲染为 Markdown 图片链接并追加到 assistant 文本输出。与 image_markdown_to_output 互逆。"),
+        ]
     }
 
     fn supported_phases(&self) -> &'static [Phase] {
@@ -44,6 +55,7 @@ impl Transform for AssistantOutputImagesToMarkdownTransform {
             "properties": {
                 "template": {
                     "type": "string",
+                    "format": "multiline",
                     "minLength": 1,
                     "description": "Template appended for each image. Supports raw placeholders {{src}}, {{url}}, {{media_type}}, {{data}} and URL-safe placeholders {{src_urlencoded}}, {{url_urlencoded}}, {{media_type_urlencoded}}, {{data_urlencoded}}."
                 }
@@ -179,7 +191,7 @@ fn percent_encode(value: &str) -> String {
 }
 
 inventory::submit!(TransformEntry {
-    factory: || Box::new(AssistantOutputImagesToMarkdownTransform),
+    factory: || Box::new(ImageOutputToMarkdownTransform),
 });
 
 #[cfg(test)]

@@ -939,6 +939,8 @@ pub async fn get_transform_registry(State(state): State<AppState>) -> AppResult<
             }
             json!({
                 "type_id": transform.type_id(),
+                "name": localized_text_object(transform.display_name()),
+                "description": localized_text_object(transform.display_description()),
                 "supported_phases": transform
                     .supported_phases()
                     .iter()
@@ -954,6 +956,14 @@ pub async fn get_transform_registry(State(state): State<AppState>) -> AppResult<
         .collect();
     items.sort_by(|a, b| a["type_id"].as_str().cmp(&b["type_id"].as_str()));
     Ok(Json(items))
+}
+
+fn localized_text_object(entries: crate::transforms::LocalizedText) -> Value {
+    let mut map = serde_json::Map::new();
+    for (language, text) in entries {
+        map.insert((*language).to_string(), Value::String((*text).to_string()));
+    }
+    Value::Object(map)
 }
 
 pub async fn get_provider_presets() -> AppResult<impl IntoResponse> {

@@ -1,13 +1,12 @@
 use crate::transforms::{
     NoState, Phase, Transform, TransformConfig, TransformEntry, TransformError,
     TransformRuntimeContext, TransformScope, TransformState, UrpData,
+    move_developer_to_system_nodes,
 };
-use crate::urp::Node;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::any::Any;
-use std::collections::HashSet;
 
 #[derive(Debug, Deserialize)]
 struct Config {}
@@ -18,20 +17,23 @@ impl TransformConfig for Config {
     }
 }
 
-pub struct StripOrphanedToolUseTransform;
+pub struct RoleDeveloperToSystemTransform;
 
-/// Anthropic requires every `tool_use` block to have a corresponding
-/// `tool_result` immediately after. When conversations are truncated
-/// or the last assistant turn contains tool calls without follow-up
-/// results, the API rejects with 400. This transform collects all
-/// `tool_result` call_ids in the conversation, then removes any
-/// `Part::ToolCall` whose call_id has no matching result.
-/// If removing all ToolCall parts from an assistant message leaves it
-/// empty, the entire message is dropped.
 #[async_trait]
-impl Transform for StripOrphanedToolUseTransform {
+impl Transform for RoleDeveloperToSystemTransform {
     fn type_id(&self) -> &'static str {
-        "strip_orphaned_tool_use"
+        "role_developer_to_system"
+    }
+
+    fn display_name(&self) -> crate::transforms::LocalizedText {
+        &[("en", "Role: developer to system"), ("zh", "角色：developer 转 system")]
+    }
+
+    fn display_description(&self) -> crate::transforms::LocalizedText {
+        &[
+            ("en", "Rewrites developer-role ordinary nodes to the system role. Inverse of role_system_to_developer."),
+            ("zh", "将 developer 角色的普通节点改写为 system 角色。与 role_system_to_developer 互逆。"),
+        ]
     }
 
     fn supported_phases(&self) -> &'static [Phase] {
@@ -69,24 +71,12 @@ impl Transform for StripOrphanedToolUseTransform {
         _state: &mut dyn TransformState,
     ) -> Result<(), TransformError> {
         if let UrpData::Request(req) = data {
-            let result_ids: HashSet<String> = req
-                .input
-                .iter()
-                .filter_map(|node| match node {
-                    Node::ToolResult { call_id, .. } => Some(call_id.clone()),
-                    _ => None,
-                })
-                .collect();
-
-            req.input.retain(|node| match node {
-                Node::ToolCall { call_id, .. } => result_ids.contains(call_id),
-                _ => true,
-            });
+            move_developer_to_system_nodes(&mut req.input);
         }
         Ok(())
     }
 }
 
 inventory::submit!(TransformEntry {
-    factory: || Box::new(StripOrphanedToolUseTransform),
+    factory: || Box::new(RoleDeveloperToSystemTransform),
 });

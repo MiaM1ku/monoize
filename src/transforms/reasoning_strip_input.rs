@@ -1,8 +1,7 @@
 use crate::transforms::{
     NoState, Phase, Transform, TransformConfig, TransformEntry, TransformError,
-    TransformRuntimeContext, TransformScope, TransformState, UrpData,
+    TransformRuntimeContext, TransformScope, TransformState, UrpData, strip_reasoning_nodes,
 };
-use crate::urp::Node;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -17,12 +16,23 @@ impl TransformConfig for Config {
     }
 }
 
-pub struct MergeConsecutiveRolesTransform;
+pub struct ReasoningStripInputTransform;
 
 #[async_trait]
-impl Transform for MergeConsecutiveRolesTransform {
+impl Transform for ReasoningStripInputTransform {
     fn type_id(&self) -> &'static str {
-        "merge_consecutive_roles"
+        "reasoning_strip_input"
+    }
+
+    fn display_name(&self) -> crate::transforms::LocalizedText {
+        &[("en", "Reasoning: strip from request input"), ("zh", "推理：移除请求输入中的推理")]
+    }
+
+    fn display_description(&self) -> crate::transforms::LocalizedText {
+        &[
+            ("en", "Removes reasoning nodes from the request input before upstream encoding. Counterpart of reasoning_strip_output."),
+            ("zh", "在上游编码前移除请求输入中的推理节点。与 reasoning_strip_output 对应。"),
+        ]
     }
 
     fn supported_phases(&self) -> &'static [Phase] {
@@ -60,45 +70,12 @@ impl Transform for MergeConsecutiveRolesTransform {
         _state: &mut dyn TransformState,
     ) -> Result<(), TransformError> {
         if let UrpData::Request(req) = data {
-            req.input = merge_same_role_nodes(&req.input);
+            req.input = strip_reasoning_nodes(&req.input);
         }
         Ok(())
     }
 }
 
-fn merge_same_role_nodes(nodes: &[Node]) -> Vec<Node> {
-    let mut merged: Vec<Node> = Vec::new();
-    for node in nodes {
-        if let (
-            Some(Node::Text {
-                role: last_role,
-                content: last_content,
-                phase: last_phase,
-                extra_body: last_extra,
-                ..
-            }),
-            Node::Text {
-                role,
-                content,
-                phase,
-                extra_body,
-                ..
-            },
-        ) = (merged.last_mut(), node)
-            && last_role == role
-            && last_phase == phase
-        {
-            last_content.push_str(content);
-            for (k, v) in extra_body {
-                last_extra.entry(k.clone()).or_insert_with(|| v.clone());
-            }
-            continue;
-        }
-        merged.push(node.clone());
-    }
-    merged
-}
-
 inventory::submit!(TransformEntry {
-    factory: || Box::new(MergeConsecutiveRolesTransform),
+    factory: || Box::new(ReasoningStripInputTransform),
 });

@@ -24,12 +24,23 @@ impl TransformConfig for Config {
     }
 }
 
-pub struct AppendEmptyUserMessageTransform;
+pub struct PromptAppendEmptyUserTransform;
 
 #[async_trait]
-impl Transform for AppendEmptyUserMessageTransform {
+impl Transform for PromptAppendEmptyUserTransform {
     fn type_id(&self) -> &'static str {
-        "append_empty_user_message"
+        "prompt_append_empty_user"
+    }
+
+    fn display_name(&self) -> crate::transforms::LocalizedText {
+        &[("en", "Prompt: append empty user message"), ("zh", "提示词：追加空 user 消息")]
+    }
+
+    fn display_description(&self) -> crate::transforms::LocalizedText {
+        &[
+            ("en", "Appends a padding user text node when the request input ends with an assistant node."),
+            ("zh", "当请求输入以 assistant 节点结尾时，追加一个占位 user 文本节点。"),
+        ]
     }
 
     fn supported_phases(&self) -> &'static [Phase] {
@@ -44,7 +55,7 @@ impl Transform for AppendEmptyUserMessageTransform {
         json!({
             "type": "object",
             "properties": {
-                "content": { "type": "string", "description": "Text content for the padding user message. Defaults to a single space." }
+                "content": { "type": "string", "format": "multiline", "description": "Text content for the padding user message. Defaults to a single space." }
             },
             "additionalProperties": false
         })
@@ -92,5 +103,5 @@ impl Transform for AppendEmptyUserMessageTransform {
 }
 
 inventory::submit!(TransformEntry {
-    factory: || Box::new(AppendEmptyUserMessageTransform),
+    factory: || Box::new(PromptAppendEmptyUserTransform),
 });
