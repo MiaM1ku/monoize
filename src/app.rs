@@ -1,6 +1,7 @@
 use crate::auth::AuthState;
 use crate::billing_rate_store::{BillingRateStore, DbBillingRateRecord};
 use crate::client_ip::TrustedProxyConfig;
+use crate::custom_transforms::CustomTransformStore;
 use crate::db::DbPool;
 use crate::error::{AppError, AppResult};
 use crate::exact_decimal::Multiplier;
@@ -198,6 +199,7 @@ pub struct AppState {
     pub model_registry_store: ModelRegistryStore,
     pub billing_rate_store: BillingRateStore,
     pub transform_registry: Arc<TransformRegistry>,
+    pub custom_transform_store: CustomTransformStore,
     pub auth_rate_limiter: RateLimiter,
     pub log_broadcast: tokio::sync::broadcast::Sender<Vec<InsertRequestLog>>,
     pub pending_request_logs: Arc<DashMap<String, InsertRequestLog>>,
@@ -356,6 +358,14 @@ pub async fn load_state_with_runtime(runtime: RuntimeConfig) -> AppResult<AppSta
 
     let (log_broadcast, _) = tokio::sync::broadcast::channel::<Vec<InsertRequestLog>>(64);
 
+    let custom_transform_store = CustomTransformStore::new(db.clone()).await.map_err(|err| {
+        AppError::new(
+            axum::http::StatusCode::BAD_REQUEST,
+            "custom_transform_store_init_failed",
+            err,
+        )
+    })?;
+
     let pending_request_logs = Arc::new(DashMap::new());
     let user_store = UserStore::new_for_role(
         db.clone(),
@@ -371,7 +381,8 @@ pub async fn load_state_with_runtime(runtime: RuntimeConfig) -> AppResult<AppSta
             "user_store_init_failed",
             err,
         )
-    })?;
+    })?
+    .with_custom_transforms(custom_transform_store.snapshot_handle());
     let settings_store = if is_replica {
         SettingsStore::new_read_only(db.clone()).await
     } else {
@@ -471,6 +482,7 @@ pub async fn load_state_with_runtime(runtime: RuntimeConfig) -> AppResult<AppSta
             db.clone(),
             settings_store.clone(),
             monoize_runtime.clone(),
+            custom_transform_store.clone(),
             runtime.node.config_poll_interval,
         );
     }
@@ -946,6 +958,7 @@ pub async fn load_state_with_runtime(runtime: RuntimeConfig) -> AppResult<AppSta
         model_registry_store,
         billing_rate_store,
         transform_registry,
+        custom_transform_store,
         auth_rate_limiter: RateLimiter::new(10, std::time::Duration::from_secs(60)),
         log_broadcast,
         pending_request_logs,
@@ -2085,6 +2098,16 @@ fn build_dashboard_api_router() -> Router<AppState> {
         .route(
             "/dashboard/transforms/registry",
             get(crate::dashboard_handlers::get_transform_registry),
+        )
+        .route(
+            "/dashboard/custom-transforms",
+            get(crate::dashboard_handlers::list_custom_transforms)
+                .post(crate::dashboard_handlers::create_custom_transform),
+        )
+        .route(
+            "/dashboard/custom-transforms/{id}",
+            put(crate::dashboard_handlers::update_custom_transform)
+                .delete(crate::dashboard_handlers::delete_custom_transform),
         )
         // Model registry API routes
         .route(

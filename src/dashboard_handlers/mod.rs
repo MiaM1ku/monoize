@@ -4,6 +4,7 @@ mod api_keys;
 mod auth;
 mod billing_plans;
 mod billing_rates;
+mod custom_transforms;
 mod groups;
 mod model_registry;
 mod providers;
@@ -38,6 +39,10 @@ pub use billing_rates::{
     PricingProfilePatternsResponse, UpdatePricingProfilePatternsRequest, delete_billing_rate,
     get_pricing_profile_patterns, list_billing_rates, sync_billing_rates_catalog,
     update_pricing_profile_patterns, upsert_billing_rate,
+};
+pub use custom_transforms::{
+    CreateCustomTransformRequest, UpdateCustomTransformRequest, create_custom_transform,
+    delete_custom_transform, list_custom_transforms, update_custom_transform,
 };
 pub use groups::{
     DashboardGroupsResponse, create_group, delete_group, list_dashboard_groups, update_group,
