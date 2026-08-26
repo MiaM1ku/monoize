@@ -1,6 +1,7 @@
+use crate::glob::case_sensitive_glob_match;
 use crate::transforms::{
     NoState, Phase, Transform, TransformConfig, TransformEntry, TransformError,
-    TransformRuntimeContext, TransformState, UrpData, model_glob_match,
+    TransformRuntimeContext, TransformState, UrpData,
 };
 use async_trait::async_trait;
 use serde::Deserialize;
@@ -113,7 +114,7 @@ impl Transform for ReasoningEffortToModelSuffixTransform {
             return Ok(());
         };
         for rule in &cfg.rules {
-            if model_glob_match(&rule.pattern, &req.model) {
+            if case_sensitive_glob_match(&rule.pattern, &req.model) {
                 let suffix = rule.suffix.replace("{effort}", &effort);
                 req.model.push_str(&suffix);
                 return Ok(());

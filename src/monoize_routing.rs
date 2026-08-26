@@ -416,14 +416,8 @@ const TRANSFORM_MIGRATION_BATCH_SIZE: usize = 199;
 const TRANSFORM_MIGRATION_MARKER: &str = "migration.provider_transform_rule_ids.v2";
 const OBSOLETE_TRANSFORM_MIGRATION_MARKER: &str = "migration.provider_transform_rule_ids.v1";
 
-fn parse_positive_entry_limit(raw: Option<&str>, default: usize) -> usize {
-    raw.and_then(|value| value.trim().parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
-}
-
 fn parse_provider_reorder_limit(raw: Option<&str>) -> usize {
-    parse_positive_entry_limit(raw, DEFAULT_PROVIDER_REORDER_MAX_IDS)
+    crate::env_limits::parse_positive(raw, DEFAULT_PROVIDER_REORDER_MAX_IDS)
         .min(DEFAULT_PROVIDER_REORDER_MAX_IDS)
 }
 
@@ -441,10 +435,8 @@ fn provider_reorder_max_ids() -> usize {
 pub fn channel_affinity_max_entries() -> usize {
     static LIMIT: OnceLock<usize> = OnceLock::new();
     *LIMIT.get_or_init(|| {
-        parse_positive_entry_limit(
-            std::env::var("MONOIZE_CHANNEL_AFFINITY_MAX_ENTRIES")
-                .ok()
-                .as_deref(),
+        crate::env_limits::positive(
+            "MONOIZE_CHANNEL_AFFINITY_MAX_ENTRIES",
             DEFAULT_CHANNEL_AFFINITY_MAX_ENTRIES,
         )
     })
@@ -462,11 +454,10 @@ pub fn channel_affinity_cleanup_interval() -> Duration {
 }
 
 fn parse_channel_affinity_cleanup_interval(raw: Option<&str>) -> Duration {
-    let seconds = raw
-        .and_then(|value| value.trim().parse::<u64>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(DEFAULT_CHANNEL_AFFINITY_CLEANUP_INTERVAL_SECONDS);
-    Duration::from_secs(seconds)
+    Duration::from_secs(crate::env_limits::parse_positive(
+        raw,
+        DEFAULT_CHANNEL_AFFINITY_CLEANUP_INTERVAL_SECONDS,
+    ))
 }
 
 pub fn cleanup_channel_affinity(
@@ -481,10 +472,8 @@ pub fn cleanup_channel_affinity(
 pub fn channel_health_max_entries() -> usize {
     static LIMIT: OnceLock<usize> = OnceLock::new();
     *LIMIT.get_or_init(|| {
-        parse_positive_entry_limit(
-            std::env::var("MONOIZE_CHANNEL_HEALTH_MAX_ENTRIES")
-                .ok()
-                .as_deref(),
+        crate::env_limits::positive(
+            "MONOIZE_CHANNEL_HEALTH_MAX_ENTRIES",
             DEFAULT_CHANNEL_HEALTH_MAX_ENTRIES,
         )
     })
@@ -493,10 +482,8 @@ pub fn channel_health_max_entries() -> usize {
 pub fn channel_passive_failure_sample_max_entries() -> usize {
     static LIMIT: OnceLock<usize> = OnceLock::new();
     *LIMIT.get_or_init(|| {
-        parse_positive_entry_limit(
-            std::env::var("MONOIZE_CHANNEL_PASSIVE_FAILURE_SAMPLE_MAX_ENTRIES")
-                .ok()
-                .as_deref(),
+        crate::env_limits::positive(
+            "MONOIZE_CHANNEL_PASSIVE_FAILURE_SAMPLE_MAX_ENTRIES",
             DEFAULT_CHANNEL_PASSIVE_FAILURE_SAMPLE_MAX_ENTRIES,
         )
     })
@@ -2441,15 +2428,11 @@ pub fn resolve_effective_api_type(
     model: &str,
 ) -> MonoizeProviderType {
     for entry in overrides {
-        if glob_match(&entry.pattern, model) {
+        if crate::glob::case_sensitive_glob_match(&entry.pattern, model) {
             return entry.api_type;
         }
     }
     default_type
-}
-
-fn glob_match(pattern: &str, value: &str) -> bool {
-    crate::glob::case_sensitive_glob_match(pattern, value)
 }
 
 pub struct ChannelProbeOutcome {
@@ -2900,12 +2883,6 @@ mod tests {
 
     #[test]
     fn entry_limit_parser_requires_a_positive_integer() {
-        assert_eq!(parse_positive_entry_limit(Some("17"), 9), 17);
-        assert_eq!(parse_positive_entry_limit(Some(" 3 "), 9), 3);
-        assert_eq!(parse_positive_entry_limit(Some("0"), 9), 9);
-        assert_eq!(parse_positive_entry_limit(Some("-1"), 9), 9);
-        assert_eq!(parse_positive_entry_limit(Some("invalid"), 9), 9);
-        assert_eq!(parse_positive_entry_limit(None, 9), 9);
         assert_eq!(parse_provider_reorder_limit(Some("17")), 17);
         assert_eq!(parse_provider_reorder_limit(Some("200")), 199);
         assert_eq!(parse_provider_reorder_limit(Some("0")), 199);

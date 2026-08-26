@@ -1,3 +1,4 @@
+use crate::env_limits::positive;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::ErrorKind;
@@ -48,24 +49,24 @@ impl ImageTransformLimits {
     fn from_env() -> Self {
         let defaults = Self::default();
         Self {
-            cache_max_files: positive_env(
+            cache_max_files: positive(
                 "MONOIZE_IMAGE_TRANSFORM_CACHE_MAX_FILES",
                 defaults.cache_max_files,
             ),
-            cache_max_bytes: positive_env(
+            cache_max_bytes: positive(
                 "MONOIZE_IMAGE_TRANSFORM_CACHE_MAX_BYTES",
                 defaults.cache_max_bytes,
             ),
-            cache_max_entry_bytes: positive_env(
+            cache_max_entry_bytes: positive(
                 "MONOIZE_IMAGE_TRANSFORM_CACHE_MAX_ENTRY_BYTES",
                 defaults.cache_max_entry_bytes,
             ),
-            max_encoded_bytes: positive_env(
+            max_encoded_bytes: positive(
                 "MONOIZE_IMAGE_TRANSFORM_MAX_ENCODED_BYTES",
                 defaults.max_encoded_bytes,
             ),
-            max_pixels: positive_env("MONOIZE_IMAGE_TRANSFORM_MAX_PIXELS", defaults.max_pixels),
-            max_concurrency: positive_env(
+            max_pixels: positive("MONOIZE_IMAGE_TRANSFORM_MAX_PIXELS", defaults.max_pixels),
+            max_concurrency: positive(
                 "MONOIZE_IMAGE_TRANSFORM_MAX_CONCURRENCY",
                 defaults.max_concurrency,
             ),
@@ -89,7 +90,7 @@ impl ImageTransformCache {
             .ok()
             .map(PathBuf::from)
             .unwrap_or_else(default_cache_root);
-        let ttl = Duration::from_secs(positive_env(
+        let ttl = Duration::from_secs(positive(
             "MONOIZE_IMAGE_TRANSFORM_CACHE_TTL_SECONDS",
             DEFAULT_CACHE_TTL_SECONDS,
         ));
@@ -473,17 +474,6 @@ async fn load_cache_metadata(
         metadata.insert(key, bytes, modified);
     }
     Ok(metadata)
-}
-
-fn positive_env<T>(name: &str, default: T) -> T
-where
-    T: std::str::FromStr + PartialOrd + From<u8> + Copy,
-{
-    std::env::var(name)
-        .ok()
-        .and_then(|value| value.parse::<T>().ok())
-        .filter(|value| *value > T::from(0))
-        .unwrap_or(default)
 }
 
 fn default_cache_root() -> PathBuf {

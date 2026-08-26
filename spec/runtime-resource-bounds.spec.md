@@ -7,7 +7,7 @@
 
 ## 1. Configuration parsing
 
-RRB-C1. Each resource-bound environment value in this specification and the linked subsystem specifications MUST accept only positive base-10 integers. Missing, zero, invalid, or overflowing values MUST use the documented default.
+RRB-C1. Each resource-bound environment value in this specification and the linked subsystem specifications MUST accept only positive base-10 integers. Parsers MUST ignore leading and trailing ASCII whitespace around the value. Missing, zero, invalid, or overflowing values MUST use the documented default.
 
 RRB-C2. All limits are process-local. This version requires no multi-instance cache coherence or distributed quota coordination.
 

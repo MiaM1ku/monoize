@@ -413,11 +413,7 @@ impl Drop for SseConnectionGuard {
 }
 
 fn max_sse_connections_per_user() -> usize {
-    std::env::var("MONOIZE_REQUEST_LOG_SSE_MAX_CONNECTIONS_PER_USER")
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(5)
+    crate::env_limits::positive("MONOIZE_REQUEST_LOG_SSE_MAX_CONNECTIONS_PER_USER", 5)
 }
 
 pub async fn stream_request_logs(

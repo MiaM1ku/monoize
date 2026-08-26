@@ -1,4 +1,5 @@
 use super::*;
+use crate::env_limits::positive;
 use axum::extract::State;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::IntoResponse;
@@ -40,28 +41,28 @@ impl ResponsesWebsocketLimits {
     fn from_env() -> Self {
         let defaults = Self::default();
         Self {
-            message_max_bytes: positive_env(
+            message_max_bytes: positive(
                 "MONOIZE_RESPONSES_WS_MESSAGE_MAX_BYTES",
                 defaults.message_max_bytes,
             ),
-            connection_max_bytes: positive_env(
+            connection_max_bytes: positive(
                 "MONOIZE_RESPONSES_WS_CONNECTION_MAX_BYTES",
                 defaults.connection_max_bytes,
             ),
-            max_turns: positive_env("MONOIZE_RESPONSES_WS_MAX_TURNS", defaults.max_turns),
-            history_max_items: positive_env(
+            max_turns: positive("MONOIZE_RESPONSES_WS_MAX_TURNS", defaults.max_turns),
+            history_max_items: positive(
                 "MONOIZE_RESPONSES_WS_HISTORY_MAX_ITEMS",
                 defaults.history_max_items,
             ),
-            history_max_bytes: positive_env(
+            history_max_bytes: positive(
                 "MONOIZE_RESPONSES_WS_HISTORY_MAX_BYTES",
                 defaults.history_max_bytes,
             ),
-            sse_frame_max_bytes: positive_env(
+            sse_frame_max_bytes: positive(
                 "MONOIZE_RESPONSES_WS_SSE_FRAME_MAX_BYTES",
                 defaults.sse_frame_max_bytes,
             ),
-            sse_buffer_max_bytes: positive_env(
+            sse_buffer_max_bytes: positive(
                 "MONOIZE_RESPONSES_WS_SSE_BUFFER_MAX_BYTES",
                 defaults.sse_buffer_max_bytes,
             ),
@@ -645,14 +646,6 @@ fn serialized_len(value: &(impl serde::Serialize + ?Sized)) -> usize {
     serde_json::to_vec(value)
         .map(|bytes| bytes.len())
         .unwrap_or(usize::MAX)
-}
-
-fn positive_env(name: &str, default: usize) -> usize {
-    std::env::var(name)
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
 }
 
 async fn send_app_error(socket: &mut WebSocket, err: AppError) -> bool {

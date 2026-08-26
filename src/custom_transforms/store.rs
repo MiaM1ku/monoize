@@ -15,11 +15,7 @@ use std::sync::{Arc, RwLock};
 const DEFAULT_SOURCE_MAX_BYTES: usize = 262_144;
 
 pub fn source_max_bytes() -> usize {
-    std::env::var("MONOIZE_CUSTOM_JS_SOURCE_MAX_BYTES")
-        .ok()
-        .and_then(|raw| raw.trim().parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(DEFAULT_SOURCE_MAX_BYTES)
+    crate::env_limits::positive("MONOIZE_CUSTOM_JS_SOURCE_MAX_BYTES", DEFAULT_SOURCE_MAX_BYTES)
 }
 
 /// CJS-VAL-4 registry default when no `configSchema` is declared.

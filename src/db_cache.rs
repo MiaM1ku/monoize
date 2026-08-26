@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::{Mutex, Notify};
 
 use crate::db::DbPool;
+use crate::env_limits::positive;
 use crate::users::{InsertRequestLog, REQUEST_LOG_STATUS_PENDING, UserBalance};
 
 // ---------------------------------------------------------------------------
@@ -30,7 +31,7 @@ impl Default for LastUsedBatcher {
 
 impl LastUsedBatcher {
     pub fn new() -> Self {
-        Self::with_capacity(positive_env_usize(
+        Self::with_capacity(positive(
             "MONOIZE_LAST_USED_BUFFER_ENTRIES",
             10_000,
         ))
@@ -39,7 +40,7 @@ impl LastUsedBatcher {
     pub fn with_capacity(capacity: usize) -> Self {
         Self::with_limits(
             capacity,
-            positive_env_usize("MONOIZE_LAST_USED_FLUSH_CHUNK_ENTRIES", 256),
+            positive("MONOIZE_LAST_USED_FLUSH_CHUNK_ENTRIES", 256),
         )
     }
 
@@ -812,16 +813,16 @@ impl RequestLogBatcher {
         pending_snapshots: Arc<DashMap<String, InsertRequestLog>>,
     ) -> Self {
         let memory_capacity =
-            positive_env_usize("MONOIZE_REQUEST_LOG_BUFFER_ENTRIES", capacity_hint.max(1));
+            positive("MONOIZE_REQUEST_LOG_BUFFER_ENTRIES", capacity_hint.max(1));
         let spool_dir = spool_dir_override.unwrap_or_else(|| {
             std::env::var("MONOIZE_REQUEST_LOG_SPOOL_DIR")
                 .map(std::path::PathBuf::from)
                 .unwrap_or_else(|_| std::path::PathBuf::from("./data/request-log-spool"))
         });
         let spool_max_bytes =
-            positive_env_u64("MONOIZE_REQUEST_LOG_SPOOL_MAX_BYTES", 512 * 1024 * 1024);
+            positive("MONOIZE_REQUEST_LOG_SPOOL_MAX_BYTES", 512 * 1024 * 1024);
         let spool_entry_max_bytes =
-            positive_env_u64("MONOIZE_REQUEST_LOG_SPOOL_ENTRY_MAX_BYTES", 8 * 1024 * 1024);
+            positive("MONOIZE_REQUEST_LOG_SPOOL_ENTRY_MAX_BYTES", 8 * 1024 * 1024);
         Self::new_with_limits(
             memory_capacity,
             spool_dir,
@@ -1455,7 +1456,7 @@ impl ApiKeyCache {
     pub fn new(ttl: Duration) -> Self {
         Self::with_capacity(
             ttl,
-            positive_env_usize("MONOIZE_API_KEY_CACHE_CAPACITY", 10_000),
+            positive("MONOIZE_API_KEY_CACHE_CAPACITY", 10_000),
         )
     }
 
@@ -1706,7 +1707,7 @@ impl BalanceCache {
     pub fn new(ttl: Duration) -> Self {
         Self::with_capacity(
             ttl,
-            positive_env_usize("MONOIZE_BALANCE_CACHE_CAPACITY", 10_000),
+            positive("MONOIZE_BALANCE_CACHE_CAPACITY", 10_000),
         )
     }
 
@@ -2043,22 +2044,6 @@ async fn load_spool_batch(
         ));
     }
     Ok(entries)
-}
-
-fn positive_env_usize(name: &str, default: usize) -> usize {
-    std::env::var(name)
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
-}
-
-fn positive_env_u64(name: &str, default: u64) -> u64 {
-    std::env::var(name)
-        .ok()
-        .and_then(|value| value.parse::<u64>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
 }
 
 #[cfg(test)]

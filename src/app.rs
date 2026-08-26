@@ -281,11 +281,7 @@ fn http_body_max_bytes() -> usize {
 }
 
 fn http_body_max_bytes_from_raw(raw: Option<&str>) -> usize {
-    raw.map(str::trim)
-        .filter(|value| !value.is_empty())
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(DEFAULT_HTTP_BODY_MAX_BYTES)
+    crate::env_limits::parse_positive(raw, DEFAULT_HTTP_BODY_MAX_BYTES)
 }
 
 pub async fn load_state() -> AppResult<AppState> {

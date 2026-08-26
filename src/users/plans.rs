@@ -12,13 +12,10 @@ const DEFAULT_PLAN_GRANT_TICK_INTERVAL_SECS: u64 = 60;
 pub fn plan_grant_tick_interval() -> std::time::Duration {
     static INTERVAL: std::sync::OnceLock<std::time::Duration> = std::sync::OnceLock::new();
     *INTERVAL.get_or_init(|| {
-        let parsed = std::env::var("MONOIZE_PLAN_GRANT_TICK_INTERVAL_SECS")
-            .ok()
-            .as_deref()
-            .map(str::trim)
-            .and_then(|value| value.parse::<u64>().ok())
-            .filter(|value| *value > 0);
-        std::time::Duration::from_secs(parsed.unwrap_or(DEFAULT_PLAN_GRANT_TICK_INTERVAL_SECS))
+        std::time::Duration::from_secs(crate::env_limits::positive(
+            "MONOIZE_PLAN_GRANT_TICK_INTERVAL_SECS",
+            DEFAULT_PLAN_GRANT_TICK_INTERVAL_SECS,
+        ))
     })
 }
 

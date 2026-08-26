@@ -415,7 +415,7 @@ pub async fn apply_transforms<'a>(
         if let Some(patterns) = &rule.models {
             if !patterns
                 .iter()
-                .any(|pattern| model_glob_match(pattern, current_model))
+                .any(|pattern| crate::glob::case_sensitive_glob_match(pattern, current_model))
             {
                 continue;
             }
@@ -478,7 +478,7 @@ pub async fn apply_stream_transforms<'a>(
         if let Some(patterns) = &rule.models {
             if !patterns
                 .iter()
-                .any(|pattern| model_glob_match(pattern, current_model))
+                .any(|pattern| crate::glob::case_sensitive_glob_match(pattern, current_model))
             {
                 continue;
             }
@@ -532,10 +532,6 @@ pub async fn apply_stream_transforms<'a>(
     }
 
     Ok(events)
-}
-
-pub fn model_glob_match(pattern: &str, model: &str) -> bool {
-    crate::glob::case_sensitive_glob_match(pattern, model)
 }
 
 pub fn text_node(role: OrdinaryRole, content: impl Into<String>) -> Node {

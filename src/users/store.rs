@@ -27,14 +27,8 @@ const MAX_FORWARDING_API_KEY_BYTES: usize = 512;
 const DEFAULT_API_KEY_BATCH_DELETE_MAX_IDS: usize = 400;
 const DEFAULT_SESSION_CLEANUP_INTERVAL_SECS: u64 = 3_600;
 
-fn parse_positive_limit(raw: Option<&str>, default: usize) -> usize {
-    raw.and_then(|value| value.trim().parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
-}
-
 fn parse_api_key_batch_delete_limit(raw: Option<&str>) -> usize {
-    parse_positive_limit(raw, DEFAULT_API_KEY_BATCH_DELETE_MAX_IDS)
+    crate::env_limits::parse_positive(raw, DEFAULT_API_KEY_BATCH_DELETE_MAX_IDS)
         .min(DEFAULT_API_KEY_BATCH_DELETE_MAX_IDS)
 }
 
@@ -50,9 +44,7 @@ fn api_key_batch_delete_max_ids() -> usize {
 }
 
 fn parse_session_cleanup_interval_secs(raw: Option<&str>) -> u64 {
-    raw.and_then(|value| value.trim().parse::<u64>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(DEFAULT_SESSION_CLEANUP_INTERVAL_SECS)
+    crate::env_limits::parse_positive(raw, DEFAULT_SESSION_CLEANUP_INTERVAL_SECS)
 }
 
 fn session_cleanup_interval() -> std::time::Duration {
@@ -3253,7 +3245,7 @@ impl UserStore {
 mod tests {
     use super::{
         DEFAULT_SESSION_CLEANUP_INTERVAL_SECS, canonicalize_ip_whitelist,
-        parse_api_key_batch_delete_limit, parse_group_ids_json, parse_positive_limit,
+        parse_api_key_batch_delete_limit, parse_group_ids_json,
         parse_session_cleanup_interval_secs, sanitize_api_key_transforms,
         serialize_group_ids_json, validate_api_key_transforms,
     };
@@ -3289,10 +3281,10 @@ mod tests {
 
     #[test]
     fn api_key_batch_limit_parser_rejects_non_positive_values() {
-        assert_eq!(parse_positive_limit(Some("399"), 400), 399);
-        assert_eq!(parse_positive_limit(Some("0"), 400), 400);
-        assert_eq!(parse_positive_limit(Some("-1"), 400), 400);
-        assert_eq!(parse_positive_limit(Some("invalid"), 400), 400);
+        assert_eq!(parse_api_key_batch_delete_limit(Some("399")), 399);
+        assert_eq!(parse_api_key_batch_delete_limit(Some("0")), 400);
+        assert_eq!(parse_api_key_batch_delete_limit(Some("-1")), 400);
+        assert_eq!(parse_api_key_batch_delete_limit(Some("invalid")), 400);
         assert_eq!(parse_api_key_batch_delete_limit(Some("401")), 400);
     }
 

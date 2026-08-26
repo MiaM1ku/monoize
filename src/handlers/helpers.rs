@@ -950,7 +950,7 @@ fn resolve_sse_max_frame_length_from_rules(
                     None => true,
                     Some(patterns) => patterns
                         .iter()
-                        .any(|pattern| model_glob_match(pattern, model)),
+                        .any(|pattern| crate::glob::case_sensitive_glob_match(pattern, model)),
                 }
         })
         .map(|rule| {
@@ -979,7 +979,7 @@ pub(super) fn requires_buffered_response_stream(
             None => true,
             Some(patterns) => patterns
                 .iter()
-                .any(|pattern| model_glob_match(pattern, model)),
+                .any(|pattern| crate::glob::case_sensitive_glob_match(pattern, model)),
         })
         .any(|rule| {
             rule.transform == "image_markdown_to_output"
@@ -1045,10 +1045,6 @@ pub(super) fn convert_assistant_images_to_markdown(resp: &mut urp::UrpResponse) 
             }
         )
     });
-}
-
-pub(super) fn model_glob_match(pattern: &str, model: &str) -> bool {
-    crate::glob::case_sensitive_glob_match(pattern, model)
 }
 
 /// Default upstream extra_body field whitelists per provider type.

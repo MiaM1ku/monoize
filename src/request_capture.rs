@@ -1,6 +1,7 @@
 use crate::auth::AuthResult;
 use crate::config::ProviderType;
 use crate::db::DbPool;
+use crate::env_limits::positive;
 use crate::handlers::DownstreamProtocol;
 use crate::monoize_routing::MonoizeRuntimeConfig;
 use crate::transforms::TransformRuleConfig;
@@ -40,16 +41,16 @@ struct RequestCaptureLimits {
 impl RequestCaptureLimits {
     fn from_env() -> Self {
         Self {
-            max_attempts: positive_env(
+            max_attempts: positive(
                 "MONOIZE_REQUEST_CAPTURE_MAX_ATTEMPTS",
                 DEFAULT_MAX_ATTEMPTS,
             ),
-            max_frames: positive_env("MONOIZE_REQUEST_CAPTURE_MAX_FRAMES", DEFAULT_MAX_FRAMES),
-            max_frame_bytes: positive_env(
+            max_frames: positive("MONOIZE_REQUEST_CAPTURE_MAX_FRAMES", DEFAULT_MAX_FRAMES),
+            max_frame_bytes: positive(
                 "MONOIZE_REQUEST_CAPTURE_MAX_FRAME_BYTES",
                 DEFAULT_MAX_FRAME_BYTES,
             ),
-            max_session_bytes: positive_env(
+            max_session_bytes: positive(
                 "MONOIZE_REQUEST_CAPTURE_MAX_SESSION_BYTES",
                 DEFAULT_MAX_SESSION_BYTES,
             )
@@ -294,7 +295,7 @@ pub(crate) fn build_transform_chain(
             if let Some(patterns) = &rule.models
                 && !patterns
                     .iter()
-                    .any(|pattern| crate::transforms::model_glob_match(pattern, match_model))
+                    .any(|pattern| crate::glob::case_sensitive_glob_match(pattern, match_model))
             {
                 continue;
             }
@@ -1298,14 +1299,6 @@ fn sqlite_file_path_from_dsn(dsn: &str) -> Option<PathBuf> {
         return None;
     }
     Some(PathBuf::from(path_part))
-}
-
-fn positive_env(name: &str, default: usize) -> usize {
-    std::env::var(name)
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
 }
 
 fn serialized_len(value: &Value) -> usize {

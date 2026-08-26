@@ -6,6 +6,7 @@
 //! four `console` logging functions; there is no filesystem, process, timer,
 //! or module-loading API.
 
+use crate::env_limits::positive;
 use crate::transforms::Phase;
 use rquickjs::{Context, Ctx, Exception, Function, Runtime};
 use serde_json::{Value, json};
@@ -38,23 +39,23 @@ impl SandboxLimits {
     pub fn from_env() -> Self {
         let defaults = Self::default();
         Self {
-            memory_limit_bytes: env_usize(
+            memory_limit_bytes: positive(
                 "MONOIZE_CUSTOM_JS_MEMORY_LIMIT_BYTES",
                 defaults.memory_limit_bytes,
             ),
-            stack_limit_bytes: env_usize(
+            stack_limit_bytes: positive(
                 "MONOIZE_CUSTOM_JS_STACK_LIMIT_BYTES",
                 defaults.stack_limit_bytes,
             ),
-            timeout: Duration::from_millis(env_u64(
+            timeout: Duration::from_millis(positive(
                 "MONOIZE_CUSTOM_JS_TIMEOUT_MS",
                 defaults.timeout.as_millis() as u64,
             )),
-            fetch_max_bytes: env_usize(
+            fetch_max_bytes: positive(
                 "MONOIZE_CUSTOM_JS_FETCH_MAX_BYTES",
                 defaults.fetch_max_bytes,
             ),
-            fetch_max_calls: env_u64(
+            fetch_max_calls: positive(
                 "MONOIZE_CUSTOM_JS_FETCH_MAX_CALLS",
                 defaults.fetch_max_calls as u64,
             ) as u32,
@@ -62,27 +63,11 @@ impl SandboxLimits {
     }
 }
 
-fn env_usize(name: &str, default: usize) -> usize {
-    std::env::var(name)
-        .ok()
-        .and_then(|raw| raw.trim().parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
-}
-
-fn env_u64(name: &str, default: u64) -> u64 {
-    std::env::var(name)
-        .ok()
-        .and_then(|raw| raw.trim().parse::<u64>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(default)
-}
-
 /// CJS-EX-3: process-wide invocation concurrency bound.
 fn sandbox_semaphore() -> &'static tokio::sync::Semaphore {
     static SEMAPHORE: OnceLock<tokio::sync::Semaphore> = OnceLock::new();
     SEMAPHORE.get_or_init(|| {
-        let permits = env_u64("MONOIZE_CUSTOM_JS_MAX_CONCURRENCY", 8) as usize;
+        let permits = positive("MONOIZE_CUSTOM_JS_MAX_CONCURRENCY", 8u64) as usize;
         tokio::sync::Semaphore::new(permits.max(1))
     })
 }
