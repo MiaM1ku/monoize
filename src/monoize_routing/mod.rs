@@ -576,6 +576,7 @@ fn default_channel_weight() -> i32 {
     1
 }
 
+/// Resolves the effective API type for a given model by evaluating api_type_overrides
 pub fn resolve_effective_api_type(
     overrides: &[ApiTypeOverride],
     default_type: MonoizeProviderType,

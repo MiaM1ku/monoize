@@ -28,8 +28,6 @@ pub async fn probe_channel_list_models(
     }
 }
 
-/// Resolves the effective API type for a given model by evaluating api_type_overrides
-
 pub struct ChannelProbeOutcome {
     pub ok: bool,
     pub usage: Option<Value>,
