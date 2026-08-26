@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 800 800" width="800" height="800" role="img"
+     aria-label="Hand-drawn anime portrait of a white-haired cat girl in a sailor uniform">
+
+  <defs>
+    <!-- Halftone dot patterns: the dot pitch and radius differ per surface so the
+         screens visibly clash, which is what gives the vintage-print moire feel. -->
+    <pattern id="dotsRed" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+      <circle cx="7" cy="7" r="2.7" fill="#B23320"/>
+    </pattern>
+    <pattern id="dotsBlue" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
+      <circle cx="6" cy="6" r="2.2" fill="#4C84B2"/>
+    </pattern>
+    <pattern id="dotsPeach" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+      <circle cx="4.5" cy="4.5" r="1.9" fill="#EE9668"/>
+    </pattern>
+    <pattern id="dotsCream" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(8)">
+      <circle cx="12" cy="12" r="1.6" fill="#E0D2B6"/>
+    </pattern>
+    <pattern id="dotsNavy" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
+      <circle cx="5.5" cy="5.5" r="1.8" fill="#16294C"/>
+    </pattern>
+
+    <radialGradient id="irisBlue" cx="0.5" cy="0.62" r="0.65">
+      <stop offset="0"    stop-color="#CFF0FC"/>
+      <stop offset="0.35" stop-color="#7CC3E8"/>
+      <stop offset="0.7"  stop-color="#3E7FC0"/>
+      <stop offset="1"    stop-color="#24548F"/>
+    </radialGradient>
+    <radialGradient id="cheekGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0"   stop-color="#F4AE83" stop-opacity="0.9"/>
+      <stop offset="1"   stop-color="#F4AE83" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hairShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#FFFFFF"/>
+      <stop offset="1"   stop-color="#EEF2F6"/>
+    </linearGradient>
+
+    <!-- Line-art groups are referenced three times each (red ghost, blue ghost,
+         main ink) to fake chromatic aberration from a misregistered print run.
+         Paths here carry no stroke color so each <use> can inject its own. -->
+    <g id="la-body" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 380 556 C 372 568 352 576 316 590 C 224 622 176 692 170 800" stroke-width="5"/>
+      <path d="M 420 556 C 428 568 448 576 484 590 C 576 622 624 692 630 800" stroke-width="5"/>
+      <path d="M 372 482 C 372 520 370 544 364 556" stroke-width="4"/>
+      <path d="M 428 482 C 428 520 430 544 436 556" stroke-width="4"/>
+      <path d="M 376 558 C 328 576 284 600 254 634 C 274 656 296 680 314 708 C 350 686 382 656 400 618 C 392 596 382 576 376 558 Z" stroke-width="5"/>
+      <path d="M 424 558 C 472 576 516 600 546 634 C 526 656 504 680 486 708 C 450 686 418 656 400 618 C 408 596 418 576 424 558 Z" stroke-width="5"/>
+      <path d="M 400 604 L 376 640 L 400 674 L 424 640 Z" stroke-width="4.5"/>
+      <path d="M 388 664 C 372 704 366 744 372 786" stroke-width="4.5"/>
+      <path d="M 412 664 C 428 704 434 744 428 786" stroke-width="4.5"/>
+      <path d="M 372 786 C 390 796 410 796 428 786" stroke-width="4.5"/>
+    </g>
+
+    <g id="la-face" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 297 360 C 299 396 308 428 332 452 C 352 480 374 496 400 496 C 426 496 448 480 468 452 C 492 428 501 396 503 360" stroke-width="5"/>
+      <path d="M 306 356 Q 336 344 364 354" stroke-width="4.5"/>
+      <path d="M 436 354 Q 464 344 494 356" stroke-width="4.5"/>
+      <path d="M 398 443 Q 403 447 400 452" stroke-width="3"/>
+      <path d="M 384 466 Q 400 478 416 466" stroke-width="4"/>
+    </g>
+
+    <g id="la-hair" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 288 470 C 270 424 258 366 262 302 C 266 220 324 166 400 164 C 476 166 534 220 538 302 C 542 366 530 424 512 470 L 502 432 L 492 464 L 483 428 C 480 402 484 374 488 350 L 478 388 L 466 352 L 455 390 L 443 350 L 432 388 L 419 351 L 407 400 L 394 352 L 381 400 L 368 352 L 357 389 L 345 350 L 334 386 L 324 348 C 318 351 314 354 312 358 C 309 394 306 420 302 436 L 293 428 L 288 470 Z" stroke-width="5"/>
+      <path d="M 396 166 C 386 128 412 112 428 128 C 410 124 400 140 406 165" stroke-width="4"/>
+      <path d="M 330 206 C 312 236 302 274 300 312" stroke-width="3"/>
+      <path d="M 470 206 C 488 236 498 274 500 312" stroke-width="3"/>
+      <path d="M 372 340 L 362 300" stroke-width="3"/>
+      <path d="M 428 338 L 436 298" stroke-width="3"/>
+      <path d="M 348 348 L 342 314" stroke-width="2.5"/>
+      <path d="M 452 348 L 458 314" stroke-width="2.5"/>
+    </g>
+
+    <g id="la-ears" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 268 262 C 250 214 246 168 254 128 C 292 150 324 180 344 214" stroke-width="5"/>
+      <path d="M 276 246 C 264 212 261 180 266 152 C 292 170 314 192 328 214" stroke-width="3.5"/>
+      <path d="M 532 262 C 550 214 554 168 546 128 C 508 150 476 180 456 214" stroke-width="5"/>
+      <path d="M 524 246 C 536 212 539 180 534 152 C 508 170 486 192 472 214" stroke-width="3.5"/>
+    </g>
+
+    <g id="la-ribbon" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 538 266 C 528 238 534 216 552 210 C 566 206 574 220 568 236 C 562 252 552 262 538 266 Z" stroke-width="4"/>
+      <path d="M 542 270 C 570 258 592 260 598 274 C 602 288 588 298 570 292 C 558 288 548 280 542 270 Z" stroke-width="4"/>
+      <path d="M 528 262 C 538 254 550 256 554 266 C 558 278 550 288 538 288 C 526 288 522 270 528 262 Z" stroke-width="4"/>
+      <path d="M 534 286 C 538 314 532 344 514 368 C 528 346 528 316 526 292" stroke-width="4"/>
+      <path d="M 546 286 C 560 312 566 342 560 372 C 574 338 568 306 556 284" stroke-width="4"/>
+    </g>
+
+    <g id="la-flower" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" stroke-width="3"/>
+      <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(-38 572 222)" stroke-width="3"/>
+      <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(38 572 222)" stroke-width="3"/>
+      <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(-76 572 222)" stroke-width="3"/>
+      <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(76 572 222)" stroke-width="3"/>
+    </g>
+  </defs>
+
+  <!-- ===== background ===== -->
+  <rect x="0" y="0" width="800" height="800" fill="#F4ECDC"/>
+  <rect x="0" y="0" width="800" height="800" fill="url(#dotsCream)" opacity="0.55"/>
+
+  <!-- diagonal sky-blue brushstrokes -->
+  <g>
+    <path d="M -20 268 C 40 210 120 130 208 66 C 224 84 236 100 244 118 C 160 180 84 252 24 316 C 8 300 -8 284 -20 268 Z" fill="#7EB5DA"/>
+    <path d="M -20 268 C 40 210 120 130 208 66 C 224 84 236 100 244 118 C 160 180 84 252 24 316 C 8 300 -8 284 -20 268 Z" fill="url(#dotsBlue)" opacity="0.7"/>
+    <path d="M 226 44 C 240 32 254 22 268 14 C 274 22 279 30 283 39 C 269 48 256 58 244 68 C 238 60 232 52 226 44 Z" fill="#7EB5DA"/>
+    <path d="M 60 344 C 72 332 84 322 97 312 C 102 319 107 327 111 335 C 98 345 86 356 75 367 C 70 359 65 351 60 344 Z" fill="#7EB5DA" opacity="0.85"/>
+
+    <path d="M 556 812 C 620 748 700 668 788 604 C 800 620 810 640 816 658 C 730 720 650 792 590 852 C 578 838 566 826 556 812 Z" fill="#7EB5DA"/>
+    <path d="M 556 812 C 620 748 700 668 788 604 C 800 620 810 640 816 658 C 730 720 650 792 590 852 C 578 838 566 826 556 812 Z" fill="url(#dotsBlue)" opacity="0.7"/>
+    <path d="M 700 570 C 714 558 728 548 742 540 C 748 548 753 556 757 565 C 743 574 730 584 718 594 C 712 586 706 578 700 570 Z" fill="#7EB5DA"/>
+  </g>
+
+  <!-- red circle with halftone screen; the offset blue ghost circle underneath
+       reads as ink misregistration -->
+  <circle cx="391" cy="337" r="246" fill="#7EB5DA" opacity="0.4"/>
+  <circle cx="400" cy="330" r="245" fill="#D9452F"/>
+  <circle cx="400" cy="330" r="245" fill="url(#dotsRed)" opacity="0.65"/>
+
+  <!-- ===== torso and uniform (lifted so the visible neck stays short) ===== -->
+  <g transform="translate(0 -12)">
+    <path d="M 170 800 C 176 692 224 622 316 590 C 352 576 372 568 380 556 L 420 556 C 428 568 448 576 484 590 C 576 622 624 692 630 800 Z" fill="#FFFFFF"/>
+    <path d="M 316 590 C 294 638 282 700 280 800 L 310 800 C 310 716 318 654 334 602 Z" fill="#E7E4DA" opacity="0.6"/>
+    <path d="M 484 590 C 506 638 518 700 520 800 L 490 800 C 490 716 482 654 466 602 Z" fill="#E7E4DA" opacity="0.6"/>
+  </g>
+
+  <!-- neck -->
+  <path d="M 372 440 C 372 510 370 542 362 558 C 386 574 414 574 438 558 C 430 542 428 510 428 440 Z" fill="#FBEBDC"/>
+  <path d="M 374 470 C 374 496 382 512 400 516 C 418 512 426 496 426 470 C 412 492 388 492 374 470 Z" fill="#EFC5A4" opacity="0.7"/>
+
+  <g transform="translate(0 -12)">
+    <!-- sailor collar -->
+    <path d="M 376 558 C 328 576 284 600 254 634 C 274 656 296 680 314 708 C 350 686 382 656 400 618 C 392 596 382 576 376 558 Z" fill="#1F3A66"/>
+    <path d="M 424 558 C 472 576 516 600 546 634 C 526 656 504 680 486 708 C 450 686 418 656 400 618 C 408 596 418 576 424 558 Z" fill="#1F3A66"/>
+    <path d="M 376 558 C 328 576 284 600 254 634 C 274 656 296 680 314 708 C 350 686 382 656 400 618 C 392 596 382 576 376 558 Z" fill="url(#dotsNavy)" opacity="0.35"/>
+    <path d="M 424 558 C 472 576 516 600 546 634 C 526 656 504 680 486 708 C 450 686 418 656 400 618 C 408 596 418 576 424 558 Z" fill="url(#dotsNavy)" opacity="0.35"/>
+    <!-- white collar stripes -->
+    <g fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round">
+      <path d="M 378 574 C 336 590 297 612 271 642 C 288 661 305 681 320 704"/>
+      <path d="M 382 590 C 345 604 312 623 289 649 C 301 663 313 678 324 694"/>
+      <path d="M 422 574 C 464 590 503 612 529 642 C 512 661 495 681 480 704"/>
+      <path d="M 418 590 C 455 604 488 623 511 649 C 499 663 487 678 476 694"/>
+    </g>
+
+    <!-- necktie -->
+    <path d="M 400 604 L 376 640 L 400 674 L 424 640 Z" fill="#1F3A66"/>
+    <path d="M 388 664 C 372 704 366 744 372 786 C 390 796 400 796 400 790 L 400 674 Z" fill="#1F3A66"/>
+    <path d="M 412 664 C 428 704 434 744 428 786 C 410 796 400 796 400 790 L 400 674 Z" fill="#24406E"/>
+    <path d="M 400 604 L 376 640 L 400 674 L 424 640 Z" fill="url(#dotsNavy)" opacity="0.3"/>
+
+    <use xlink:href="#la-body" transform="translate(1.5 0)"  stroke="#E0432E" opacity="0.55"/>
+    <use xlink:href="#la-body" transform="translate(-1.5 0)" stroke="#3F7CC4" opacity="0.55"/>
+    <use xlink:href="#la-body" stroke="#2B3A56"/>
+  </g>
+
+  <!-- ===== face ===== -->
+  <path d="M 296 310 C 296 235 340 192 400 192 C 460 192 504 235 504 310 C 504 368 496 412 468 452 C 448 480 426 496 400 496 C 374 496 352 480 332 452 C 304 412 296 368 296 310 Z" fill="#FBEBDC"/>
+
+  <!-- blush -->
+  <ellipse cx="313" cy="436" rx="30" ry="14" fill="url(#cheekGlow)"/>
+  <ellipse cx="487" cy="436" rx="30" ry="14" fill="url(#cheekGlow)"/>
+  <ellipse cx="313" cy="436" rx="26" ry="12" fill="url(#dotsPeach)" opacity="0.9"/>
+  <ellipse cx="487" cy="436" rx="26" ry="12" fill="url(#dotsPeach)" opacity="0.9"/>
+
+  <!-- eyes -->
+  <g>
+    <!-- sclera bounded by the lash line above and the lower lid below -->
+    <path d="M 305 392 C 318 370 350 364 371 379 C 374 402 370 430 361 445 C 346 452 329 451 317 445 C 308 430 303 410 305 392 Z" fill="#FFFFFF"/>
+    <path d="M 495 392 C 482 370 450 364 429 379 C 426 402 430 430 439 445 C 454 452 471 451 483 445 C 492 430 497 410 495 392 Z" fill="#FFFFFF"/>
+
+    <ellipse cx="338" cy="410" rx="28" ry="35" fill="url(#irisBlue)"/>
+    <path d="M 310 406 C 314 384 327 376 338 376 C 349 376 362 384 366 406 C 357 395 348 391 338 391 C 328 391 319 395 310 406 Z" fill="#1C3F70" opacity="0.5"/>
+    <ellipse cx="338" cy="414" rx="10.5" ry="14.5" fill="#132A4C"/>
+    <circle cx="326" cy="395" r="9" fill="#FFFFFF"/>
+    <circle cx="351" cy="427" r="4.5" fill="#FFFFFF" opacity="0.92"/>
+    <path d="M 350 388 L 352.5 394.5 L 358.5 397 L 352.5 399.5 L 350 406 L 347.5 399.5 L 341.5 397 L 347.5 394.5 Z" fill="#FFFFFF"/>
+
+    <ellipse cx="462" cy="410" rx="28" ry="35" fill="url(#irisBlue)"/>
+    <path d="M 434 406 C 438 384 451 376 462 376 C 473 376 486 384 490 406 C 481 395 472 391 462 391 C 452 391 443 395 434 406 Z" fill="#1C3F70" opacity="0.5"/>
+    <ellipse cx="462" cy="414" rx="10.5" ry="14.5" fill="#132A4C"/>
+    <circle cx="450" cy="395" r="9" fill="#FFFFFF"/>
+    <circle cx="475" cy="427" r="4.5" fill="#FFFFFF" opacity="0.92"/>
+    <path d="M 474 388 L 476.5 394.5 L 482.5 397 L 476.5 399.5 L 474 406 L 471.5 399.5 L 465.5 397 L 471.5 394.5 Z" fill="#FFFFFF"/>
+  </g>
+
+  <!-- eyelashes: three offset copies for the aberration fringe -->
+  <g fill="none" stroke-linecap="round">
+    <g stroke="#E0432E" opacity="0.5" transform="translate(1.5 0)">
+      <path d="M 302 392 C 316 368 350 362 372 378" stroke-width="9.5"/>
+      <path d="M 498 392 C 484 368 450 362 428 378" stroke-width="9.5"/>
+    </g>
+    <g stroke="#3F7CC4" opacity="0.5" transform="translate(-1.5 0)">
+      <path d="M 302 392 C 316 368 350 362 372 378" stroke-width="9.5"/>
+      <path d="M 498 392 C 484 368 450 362 428 378" stroke-width="9.5"/>
+    </g>
+    <g stroke="#1E2F4F">
+      <path d="M 302 392 C 316 368 350 362 372 378" stroke-width="9.5"/>
+      <path d="M 302 392 L 292 382" stroke-width="7"/>
+      <path d="M 498 392 C 484 368 450 362 428 378" stroke-width="9.5"/>
+      <path d="M 498 392 L 508 382" stroke-width="7"/>
+    </g>
+    <path d="M 312 376 C 324 362 348 358 366 366" stroke="#D9A88E" stroke-width="2.5"/>
+    <path d="M 488 376 C 476 362 452 358 434 366" stroke="#D9A88E" stroke-width="2.5"/>
+    <path d="M 315 446 Q 338 454 361 446" stroke="#C98E7B" stroke-width="3.5"/>
+    <path d="M 439 446 Q 462 454 485 446" stroke="#C98E7B" stroke-width="3.5"/>
+  </g>
+
+  <use xlink:href="#la-face" transform="translate(1.5 0)"  stroke="#E0432E" opacity="0.55"/>
+  <use xlink:href="#la-face" transform="translate(-1.5 0)" stroke="#3F7CC4" opacity="0.55"/>
+  <use xlink:href="#la-face" stroke="#2B3A56"/>
+
+  <!-- ===== hair ===== -->
+  <path d="M 288 470 C 270 424 258 366 262 302 C 266 220 324 166 400 164 C 476 166 534 220 538 302 C 542 366 530 424 512 470 L 502 432 L 492 464 L 483 428 C 480 402 484 374 488 350 L 478 388 L 466 352 L 455 390 L 443 350 L 432 388 L 419 351 L 407 400 L 394 352 L 381 400 L 368 352 L 357 389 L 345 350 L 334 386 L 324 348 C 318 351 314 354 312 358 C 309 394 306 420 302 436 L 293 428 L 288 470 Z" fill="url(#hairShine)"/>
+  <!-- ahoge -->
+  <path d="M 396 166 C 386 128 412 112 428 128 C 410 124 400 140 406 165 Z" fill="#FDFCF8"/>
+  <!-- interior hair shading strands -->
+  <g fill="#DCE4EC">
+    <path d="M 330 204 C 310 234 300 272 298 312 C 306 274 318 238 338 208 Z"/>
+    <path d="M 470 204 C 490 234 500 272 502 312 C 494 274 482 238 462 208 Z"/>
+    <path d="M 360 300 L 371 342 L 366 344 L 354 304 Z"/>
+    <path d="M 438 298 L 429 340 L 434 342 L 444 302 Z"/>
+    <path d="M 306 384 C 304 408 302 424 298 434 L 305 428 L 310 388 Z"/>
+    <path d="M 494 384 C 496 408 498 424 502 434 L 495 428 L 490 388 Z"/>
+    <path d="M 402 336 L 410 372 L 415 370 L 408 336 Z"/>
+  </g>
+
+  <use xlink:href="#la-hair" transform="translate(1.5 0)"  stroke="#E0432E" opacity="0.55"/>
+  <use xlink:href="#la-hair" transform="translate(-1.5 0)" stroke="#3F7CC4" opacity="0.55"/>
+  <use xlink:href="#la-hair" stroke="#2B3A56"/>
+
+  <!-- ===== cat ears ===== -->
+  <path d="M 268 262 C 250 214 246 168 254 128 C 292 150 324 180 344 214 C 318 236 292 252 268 262 Z" fill="#FDFCF8"/>
+  <path d="M 276 246 C 264 212 261 180 266 152 C 292 170 314 192 328 214 C 312 228 294 240 276 246 Z" fill="#F5C4B4"/>
+  <path d="M 532 262 C 550 214 554 168 546 128 C 508 150 476 180 456 214 C 482 236 508 252 532 262 Z" fill="#FDFCF8"/>
+  <path d="M 524 246 C 536 212 539 180 534 152 C 508 170 486 192 472 214 C 488 228 506 240 524 246 Z" fill="#F5C4B4"/>
+
+  <use xlink:href="#la-ears" transform="translate(1.5 0)"  stroke="#E0432E" opacity="0.55"/>
+  <use xlink:href="#la-ears" transform="translate(-1.5 0)" stroke="#3F7CC4" opacity="0.55"/>
+  <use xlink:href="#la-ears" stroke="#2B3A56"/>
+
+  <!-- ===== ribbon ===== -->
+  <path d="M 538 266 C 528 238 534 216 552 210 C 566 206 574 220 568 236 C 562 252 552 262 538 266 Z" fill="#24406E"/>
+  <path d="M 542 270 C 570 258 592 260 598 274 C 602 288 588 298 570 292 C 558 288 548 280 542 270 Z" fill="#24406E"/>
+  <path d="M 534 286 C 538 314 532 344 514 368 C 528 346 528 316 526 292 Z" fill="#1B3155"/>
+  <path d="M 546 286 C 560 312 566 342 560 372 C 574 338 568 306 556 284 Z" fill="#24406E"/>
+  <path d="M 528 262 C 538 254 550 256 554 266 C 558 278 550 288 538 288 C 526 288 522 270 528 262 Z" fill="#1B3155"/>
+
+  <use xlink:href="#la-ribbon" transform="translate(1.5 0)"  stroke="#E0432E" opacity="0.55"/>
+  <use xlink:href="#la-ribbon" transform="translate(-1.5 0)" stroke="#3F7CC4" opacity="0.55"/>
+  <use xlink:href="#la-ribbon" stroke="#2B3A56"/>
+
+  <!-- ===== white lily tucked into the ribbon ===== -->
+  <g fill="#FFFFFF">
+    <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(-76 572 222)"/>
+    <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(76 572 222)"/>
+    <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(-38 572 222)"/>
+    <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z" transform="rotate(38 572 222)"/>
+    <path d="M 572 222 C 564 200 564 176 574 158 C 584 174 586 200 578 222 Z"/>
+  </g>
+  <!-- stamens -->
+  <g stroke="#E58A2E" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <path d="M 572 220 C 568 206 564 196 557 188"/>
+    <path d="M 573 219 C 573 205 574 194 576 184"/>
+    <path d="M 574 220 C 580 207 586 198 592 191"/>
+  </g>
+  <g fill="#D97722">
+    <ellipse cx="556" cy="186" rx="4.2" ry="2.8" transform="rotate(-35 556 186)"/>
+    <ellipse cx="576" cy="182" rx="4.2" ry="2.8" transform="rotate(5 576 182)"/>
+    <ellipse cx="593" cy="189" rx="4.2" ry="2.8" transform="rotate(40 593 189)"/>
+  </g>
+  <circle cx="572" cy="223" r="5" fill="#F3E1C6"/>
+
+  <use xlink:href="#la-flower" transform="translate(1.5 0)"  stroke="#E0432E" opacity="0.5"/>
+  <use xlink:href="#la-flower" transform="translate(-1.5 0)" stroke="#3F7CC4" opacity="0.5"/>
+  <use xlink:href="#la-flower" stroke="#8C93A0"/>
+</svg>
