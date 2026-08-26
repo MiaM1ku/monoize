@@ -1,6 +1,5 @@
 pub mod app;
 pub mod auth;
-pub mod billing_rate_store;
 pub(crate) mod bounded_response;
 pub mod captcha;
 pub mod client_ip;
@@ -27,6 +26,7 @@ pub mod presets;
 pub mod replica;
 pub mod request_capture;
 pub mod settings;
+pub mod settlement;
 pub mod transforms;
 pub mod upstream;
 pub mod urp;

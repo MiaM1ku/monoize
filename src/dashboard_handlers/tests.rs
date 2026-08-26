@@ -2,11 +2,9 @@ use super::api_keys::{
     ApiKeyCreatedResponse, ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest,
 };
 use super::providers::{
-    build_dashboard_rate_matrix_cache, build_models_list_url,
-    provider_dashboard_rate_matrix_is_complete, provider_pricing_model,
+    build_models_list_url, channel_model_has_model_price, provider_pricing_model,
 };
 use super::users::{CreateUserRequest, UpdateUserRequest};
-use crate::billing_rate_store::DbBillingRateRecord;
 use crate::dashboard_handlers::auth::UserResponse;
 use crate::db::DbPool;
 use crate::migration::Migrator;
@@ -14,7 +12,7 @@ use crate::monoize_routing::{
     AffinityFailbackMode, CreateMonoizeProviderInput, MonoizeChannel, MonoizeModelEntry,
     MonoizeProvider, MonoizeProviderType, MonoizeRoutingStore, UpdateMonoizeProviderInput,
 };
-use crate::settings::{PricingProfilePattern, SettingsStore};
+use crate::settings::SettingsStore;
 use crate::transforms::{Phase, TransformRuleConfig};
 use crate::users::{
     CreateApiKeyInput, ModelRedirectRule, RequestLogAffinity, RequestLogApiKey, RequestLogBilling,
@@ -70,92 +68,43 @@ fn provider_pricing_model_falls_back_to_logical_when_redirect_blank() {
     );
 }
 
-fn dashboard_rate(id: &str, usage_class: &str, context_tier: Option<&str>) -> DbBillingRateRecord {
-    DbBillingRateRecord {
-        id: id.to_string(),
-        source: "manual".to_string(),
-        pricing_profile: "openai".to_string(),
-        model_pattern: Some("gpt-test".to_string()),
-        provider_type: Some("responses".to_string()),
-        rate_kind: "token".to_string(),
-        usage_class: usage_class.to_string(),
-        unit: "token".to_string(),
-        unit_price_nano_usd: "1".to_string(),
-        context_tier: context_tier.map(str::to_string),
-        service_tier: None,
-        modality: None,
-        cache_ttl: None,
-        match_json: serde_json::json!({}),
-        priority: 0,
-        enabled: true,
-        raw_json: serde_json::json!({}),
-        updated_at: chrono::Utc::now(),
-    }
-}
-
 #[test]
-fn provider_dashboard_rate_matrix_requires_complete_tiered_billing_rates() {
-    assert!(provider_dashboard_rate_matrix_is_complete(&[
-        dashboard_rate("input", "input_uncached", None),
-        dashboard_rate("output", "output", None),
-    ]));
+fn channel_model_pricing_status_checks_upstream_then_logical_key() {
+    let priced_keys = HashSet::from(["gpt-5-upstream".to_string(), "gpt-5-logical".to_string()]);
+    let suffixes = HashMap::new();
 
-    let mut tiered = vec![
-        dashboard_rate("short-input", "input_uncached", Some("short")),
-        dashboard_rate("short-output", "output", Some("short")),
-        dashboard_rate("long-input", "input_uncached", Some("long")),
-        dashboard_rate("long-output", "output", Some("long")),
-    ];
-    assert!(!provider_dashboard_rate_matrix_is_complete(&tiered));
-    for rate in &mut tiered {
-        rate.match_json = serde_json::json!({ "context_threshold_tokens": 128000 });
-    }
-    assert!(provider_dashboard_rate_matrix_is_complete(&tiered));
-    tiered.retain(|rate| rate.id != "long-output");
-    assert!(!provider_dashboard_rate_matrix_is_complete(&tiered));
-}
+    let redirected = MonoizeModelEntry {
+        redirect: Some("gpt-5-upstream".to_string()),
+        multiplier: crate::exact_decimal::Multiplier::ONE,
+    };
+    assert!(channel_model_has_model_price(
+        &priced_keys,
+        "anything",
+        &redirected,
+        &suffixes
+    ));
 
-#[test]
-fn provider_dashboard_rate_matrix_cache_filters_bulk_candidates_in_memory() {
-    let pairs = HashSet::from([
-        ("gpt-test".to_string(), "responses".to_string()),
-        ("gpt-test".to_string(), "messages".to_string()),
-        ("metadata-model".to_string(), "messages".to_string()),
-    ]);
-    let patterns = vec![PricingProfilePattern {
-        pattern: "gpt-*".to_string(),
-        pricing_profile: "openai".to_string(),
-    }];
-    let metadata = HashMap::from([("metadata-model".to_string(), "anthropic".to_string())]);
-    let mut rates = vec![
-        dashboard_rate("openai-input", "input_uncached", None),
-        dashboard_rate("openai-output", "output", None),
-    ];
-    for rate in &mut rates {
-        rate.provider_type = Some("responses".to_string());
-    }
-    let mut metadata_input = dashboard_rate("metadata-input", "input_uncached", None);
-    metadata_input.pricing_profile = "anthropic".to_string();
-    metadata_input.model_pattern = Some("metadata-*".to_string());
-    metadata_input.provider_type = Some("messages".to_string());
-    let mut metadata_output = metadata_input.clone();
-    metadata_output.id = "metadata-output".to_string();
-    metadata_output.usage_class = "output".to_string();
-    rates.extend([metadata_input, metadata_output]);
+    let logical_only = MonoizeModelEntry {
+        redirect: Some("unpriced-upstream".to_string()),
+        multiplier: crate::exact_decimal::Multiplier::ONE,
+    };
+    assert!(channel_model_has_model_price(
+        &priced_keys,
+        "gpt-5-logical",
+        &logical_only,
+        &suffixes
+    ));
 
-    let cache = build_dashboard_rate_matrix_cache(&pairs, &patterns, &metadata, &rates);
-    assert_eq!(
-        cache.get(&("gpt-test".to_string(), "responses".to_string())),
-        Some(&true)
-    );
-    assert_eq!(
-        cache.get(&("gpt-test".to_string(), "messages".to_string())),
-        Some(&false)
-    );
-    assert_eq!(
-        cache.get(&("metadata-model".to_string(), "messages".to_string())),
-        Some(&true)
-    );
+    let unpriced = MonoizeModelEntry {
+        redirect: None,
+        multiplier: crate::exact_decimal::Multiplier::ONE,
+    };
+    assert!(!channel_model_has_model_price(
+        &priced_keys,
+        "unpriced-model",
+        &unpriced,
+        &suffixes
+    ));
 }
 
 #[test]
@@ -231,8 +180,6 @@ fn dashboard_provider_response_includes_groups_and_channel_hides_api_key() {
         api_key: "secret".to_string(),
         weight: 1,
         enabled: true,
-        allow_missing_usage: false,
-        allow_unpriced_server_tools: false,
         passive_failure_count_threshold_override: None,
         passive_cooldown_seconds_override: None,
         passive_window_seconds_override: None,

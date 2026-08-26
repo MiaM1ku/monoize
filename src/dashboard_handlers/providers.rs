@@ -1,5 +1,4 @@
 use crate::app::AppState;
-use crate::billing_rate_store::{DbBillingRateRecord, glob_matches, select_pricing_profile};
 use crate::dashboard_handlers::session_helpers::require_admin;
 use crate::error::{AppError, AppResult};
 use crate::handlers::routing::health_key;
@@ -325,108 +324,10 @@ pub(super) fn provider_pricing_model<'a>(
         .unwrap_or(logical_model)
 }
 
-fn parse_u64_value(value: &Value) -> Option<u64> {
-    value
-        .as_u64()
-        .or_else(|| value.as_i64().and_then(|v| u64::try_from(v).ok()))
-        .or_else(|| value.as_str().and_then(|s| s.parse::<u64>().ok()))
-}
-
-pub(super) fn provider_dashboard_rate_matrix_is_complete(rates: &[DbBillingRateRecord]) -> bool {
-    let has_input = rates
-        .iter()
-        .any(|r| r.rate_kind == "token" && r.usage_class == "input_uncached");
-    let has_output = rates
-        .iter()
-        .any(|r| r.rate_kind == "token" && r.usage_class == "output");
-    if !has_input || !has_output {
-        return false;
-    }
-
-    let context_tiers: HashSet<&str> = rates
-        .iter()
-        .filter_map(|r| r.context_tier.as_deref())
-        .filter(|tier| *tier != "default")
-        .collect();
-    if context_tiers.is_empty() {
-        return true;
-    }
-
-    let has_threshold = rates
-        .iter()
-        .filter_map(|r| r.match_json.get("context_threshold_tokens"))
-        .any(|value| parse_u64_value(value).is_some());
-    if !has_threshold {
-        return false;
-    }
-
-    context_tiers.iter().all(|tier| {
-        ["input_uncached", "output"].iter().all(|usage_class| {
-            rates.iter().any(|r| {
-                r.rate_kind == "token"
-                    && r.usage_class == *usage_class
-                    && r.context_tier.as_deref() == Some(*tier)
-            })
-        })
-    })
-}
-
-fn dashboard_candidate_profiles(
-    pricing_patterns: &[crate::settings::PricingProfilePattern],
-    metadata_profiles: &HashMap<String, String>,
-    model: &str,
-) -> Vec<String> {
-    let mut candidate_profiles = Vec::new();
-    if let Some(pricing_profile) = select_pricing_profile(pricing_patterns, model) {
-        candidate_profiles.push(pricing_profile.to_string());
-    }
-    if let Some(metadata_profile) = metadata_profiles.get(model)
-        && !candidate_profiles
-            .iter()
-            .any(|candidate| candidate == metadata_profile)
-    {
-        candidate_profiles.push(metadata_profile.clone());
-    }
-    candidate_profiles
-}
-
-pub(super) fn build_dashboard_rate_matrix_cache(
-    pairs: &HashSet<(String, String)>,
-    pricing_patterns: &[crate::settings::PricingProfilePattern],
-    metadata_profiles: &HashMap<String, String>,
-    candidate_rates: &[DbBillingRateRecord],
-) -> HashMap<(String, String), bool> {
-    let mut cache = HashMap::with_capacity(pairs.len());
-    for (model, provider_type) in pairs {
-        let available = dashboard_candidate_profiles(pricing_patterns, metadata_profiles, model)
-            .into_iter()
-            .any(|profile| {
-                let rates = candidate_rates
-                    .iter()
-                    .filter(|rate| {
-                        rate.pricing_profile == profile
-                            && rate
-                                .provider_type
-                                .as_deref()
-                                .is_none_or(|value| value == provider_type)
-                            && rate
-                                .model_pattern
-                                .as_deref()
-                                .is_none_or(|pattern| glob_matches(pattern, model))
-                    })
-                    .cloned()
-                    .collect::<Vec<_>>();
-                provider_dashboard_rate_matrix_is_complete(&rates)
-            });
-        cache.insert((model.clone(), provider_type.clone()), available);
-    }
-    cache
-}
-
-fn channel_model_has_billable_rate_matrix(
-    cache: &HashMap<(String, String), bool>,
-    provider: &MonoizeProvider,
-    channel: &MonoizeChannel,
+/// MP-UI3: a channel model is priced when an enabled, complete `model_prices`
+/// row exists for its normalized upstream key or normalized logical key.
+pub(super) fn channel_model_has_model_price(
+    priced_keys: &HashSet<String>,
     logical_model: &str,
     model_entry: &crate::monoize_routing::MonoizeModelEntry,
     reasoning_suffix_map: &HashMap<String, String>,
@@ -434,25 +335,12 @@ fn channel_model_has_billable_rate_matrix(
     let upstream_model = provider_pricing_model(logical_model, model_entry);
     let normalized_upstream_model =
         normalize_pricing_model_key(upstream_model, reasoning_suffix_map);
-    let normalized_logical_model = normalize_pricing_model_key(logical_model, reasoning_suffix_map);
-    let effective_type = crate::monoize_routing::resolve_effective_api_type(
-        &provider.api_type_overrides,
-        channel.provider_type,
-        logical_model,
-    );
-    let provider_type = effective_type.as_str().to_string();
-    if cache
-        .get(&(normalized_upstream_model.clone(), provider_type.clone()))
-        .copied()
-        .unwrap_or(false)
-    {
+    if priced_keys.contains(&normalized_upstream_model) {
         return true;
     }
-    normalized_upstream_model != normalized_logical_model
-        && cache
-            .get(&(normalized_logical_model, provider_type))
-            .copied()
-            .unwrap_or(false)
+    let normalized_logical_model = normalize_pricing_model_key(logical_model, reasoning_suffix_map);
+    normalized_logical_model != normalized_upstream_model
+        && priced_keys.contains(&normalized_logical_model)
 }
 
 pub async fn list_providers(
@@ -467,73 +355,39 @@ pub async fn list_providers(
         .await
         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal_error", e))?;
 
-    let (reasoning_suffix_map, pricing_patterns) = {
-        let runtime = state.monoize_runtime.read().await;
-        (
-            runtime.reasoning_suffix_map.clone(),
-            runtime.pricing_profile_model_patterns.clone(),
-        )
-    };
-    let mut pricing_pairs = HashSet::new();
+    let reasoning_suffix_map = state
+        .monoize_runtime
+        .read()
+        .await
+        .reasoning_suffix_map
+        .clone();
+    let mut pricing_keys = HashSet::new();
     for provider in &providers {
         for channel in &provider.channels {
             for (logical_model, model_entry) in &channel.models {
-                let normalized_upstream_model = normalize_pricing_model_key(
+                pricing_keys.insert(normalize_pricing_model_key(
                     provider_pricing_model(logical_model, model_entry),
                     &reasoning_suffix_map,
-                );
-                let normalized_logical_model =
-                    normalize_pricing_model_key(logical_model, &reasoning_suffix_map);
-                let provider_type = crate::monoize_routing::resolve_effective_api_type(
-                    &provider.api_type_overrides,
-                    channel.provider_type,
+                ));
+                pricing_keys.insert(normalize_pricing_model_key(
                     logical_model,
-                )
-                .as_str()
-                .to_string();
-                pricing_pairs.insert((normalized_upstream_model.clone(), provider_type.clone()));
-                if normalized_upstream_model != normalized_logical_model {
-                    pricing_pairs.insert((normalized_logical_model, provider_type));
-                }
+                    &reasoning_suffix_map,
+                ));
             }
         }
     }
-    let mut pricing_models = pricing_pairs
-        .iter()
-        .map(|(model, _)| model.clone())
-        .collect::<Vec<_>>();
+    let mut pricing_models = pricing_keys.into_iter().collect::<Vec<_>>();
     pricing_models.sort();
-    pricing_models.dedup();
-    let metadata_profiles = state
-        .model_registry_store
-        .list_model_metadata_pricing_profiles(&pricing_models)
+    let priced_keys: HashSet<String> = state
+        .model_price_store
+        .list_by_model_ids(&pricing_models)
         .await
-        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal_error", e))?;
-    let mut candidate_profiles = pricing_models
-        .iter()
-        .flat_map(|model| {
-            dashboard_candidate_profiles(&pricing_patterns, &metadata_profiles, model)
-        })
-        .collect::<Vec<_>>();
-    candidate_profiles.sort();
-    candidate_profiles.dedup();
-    let mut provider_types = pricing_pairs
-        .iter()
-        .map(|(_, provider_type)| provider_type.clone())
-        .collect::<Vec<_>>();
-    provider_types.sort();
-    provider_types.dedup();
-    let candidate_rates = state
-        .billing_rate_store
-        .list_candidate_rates_for_profiles_and_provider_types(&candidate_profiles, &provider_types)
-        .await
-        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal_error", e))?;
-    let rate_matrix_cache = build_dashboard_rate_matrix_cache(
-        &pricing_pairs,
-        &pricing_patterns,
-        &metadata_profiles,
-        &candidate_rates,
-    );
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal_error", e))?
+        .into_iter()
+        // MP-R2/MP-R4: disabled or incomplete rows count as missing.
+        .filter(|row| row.enabled && row.is_complete())
+        .map(|row| row.model_id)
+        .collect();
 
     let mut out = Vec::with_capacity(providers.len());
     for provider in providers {
@@ -541,10 +395,8 @@ pub async fn list_providers(
         let mut unpriced_entries = HashSet::new();
         for channel in &provider.channels {
             for (logical_model, model_entry) in &channel.models {
-                let has_pricing = channel_model_has_billable_rate_matrix(
-                    &rate_matrix_cache,
-                    &provider,
-                    channel,
+                let has_pricing = channel_model_has_model_price(
+                    &priced_keys,
                     logical_model,
                     model_entry,
                     &reasoning_suffix_map,
@@ -1303,8 +1155,6 @@ mod tests {
                 api_key: Some("stored-secret".to_string()),
                 weight: 1,
                 enabled: true,
-                allow_missing_usage: false,
-                allow_unpriced_server_tools: false,
                 passive_failure_count_threshold_override: None,
                 passive_cooldown_seconds_override: None,
                 passive_window_seconds_override: None,

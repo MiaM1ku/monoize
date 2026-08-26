@@ -1009,9 +1009,6 @@ async fn execute_stream_collected_image_typed(
                         }
                     };
 
-                    let missing_usage_substituted =
-                        substitute_zero_usage_if_allowed(&mut resp.usage, &attempt);
-
                     if let Err(err) = validate_image_subrequest_response(&resp) {
                         let same_channel_retryable = is_same_channel_retryable_app_error(&err);
                         let passive_failure_class =
@@ -1042,39 +1039,21 @@ async fn execute_stream_collected_image_typed(
                         break 'channel_attempts;
                     }
 
-                    if resp.usage.is_none() {
-                        let err = AppError::new(
-                            StatusCode::BAD_GATEWAY,
-                            "upstream_usage_required",
-                            "upstream response did not include billable usage",
-                        );
-                        let same_channel_retryable = is_same_channel_retryable_app_error(&err);
-                        let passive_failure_class =
-                            same_channel_retryable.then(|| classify_retryable_app_failure(&err));
-                        record_upstream_attempt_failure(
+                    // MP-F3: a fail-closed missing-usage billable success
+                    // rejects with 403 before response delivery.
+                    if resp.usage.is_none() && missing_usage_rejects(auth, &attempt) {
+                        return Err(finish_image_stream_error(
                             state,
+                            auth,
                             &attempt,
-                            attempt_number,
-                            &err,
-                            passive_failure_class,
-                            &mut tried_providers,
-                            &mut execution_state,
-                        )
-                        .await;
-                        last_failed_attempt = Some(attempt.clone());
-                        if allow_same_channel_retry(
-                            state,
-                            &attempt,
-                            &execution_state,
-                            channel_attempt + 1,
-                            passive_failure_class,
-                        )
-                        .await
-                        {
-                            maybe_sleep_before_channel_retry(&attempt).await;
-                            continue 'channel_attempts;
-                        }
-                        break 'channel_attempts;
+                            &logical_model,
+                            started_at,
+                            &request_id,
+                            &request_ip,
+                            req.reasoning.as_ref().and_then(|r| r.effort.clone()),
+                            tried_providers,
+                            missing_usage_error(),
+                        ));
                     }
 
                     mark_channel_success(state, &attempt).await;
@@ -1085,7 +1064,6 @@ async fn execute_stream_collected_image_typed(
                         &attempt,
                         &logical_model,
                         &resp,
-                        missing_usage_substituted,
                         request_id.as_deref(),
                     )
                     .await
