@@ -1346,25 +1346,6 @@ pub(super) fn validate_actual_server_tool_meter_requirements(
     .map(|_| ())
 }
 
-pub(super) fn calculate_rate_matrix_charge_components(
-    usage: &urp::Usage,
-    output: Option<&[urp::Node]>,
-    response_service_tier: Option<&str>,
-    resolution: &BillingRateResolution,
-    provider_multiplier: Multiplier,
-    requested_usage_classes: &[String],
-) -> Result<MatrixChargeComponents, String> {
-    calculate_rate_matrix_charge_components_with_policy(
-        usage,
-        output,
-        response_service_tier,
-        resolution,
-        provider_multiplier,
-        requested_usage_classes,
-        false,
-    )
-}
-
 pub(super) fn calculate_rate_matrix_charge_components_with_policy(
     usage: &urp::Usage,
     output: Option<&[urp::Node]>,

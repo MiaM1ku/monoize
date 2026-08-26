@@ -18,6 +18,27 @@ use std::collections::{BTreeSet, HashMap};
 
 const GROUP_ROUTING_MODEL: &str = "gpt-group-routing";
 
+/// Test-only shorthand for `calculate_rate_matrix_charge_components_with_policy`
+/// with the default (strict) unpriced-server-tool policy.
+fn calculate_rate_matrix_charge_components(
+    usage: &urp::Usage,
+    output: Option<&[urp::Node]>,
+    response_service_tier: Option<&str>,
+    resolution: &BillingRateResolution,
+    provider_multiplier: Multiplier,
+    requested_usage_classes: &[String],
+) -> Result<MatrixChargeComponents, String> {
+    calculate_rate_matrix_charge_components_with_policy(
+        usage,
+        output,
+        response_service_tier,
+        resolution,
+        provider_multiplier,
+        requested_usage_classes,
+        false,
+    )
+}
+
 fn test_rate(
     id: &str,
     usage_class: &str,
