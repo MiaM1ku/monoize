@@ -10,22 +10,22 @@ pub const DEFAULT_CHANNEL_AFFINITY_CLEANUP_INTERVAL_SECONDS: u64 = 60;
 pub const DEFAULT_CHANNEL_HEALTH_MAX_ENTRIES: usize = 10_000;
 pub const DEFAULT_CHANNEL_PASSIVE_FAILURE_SAMPLE_MAX_ENTRIES: usize = 1024;
 pub const DEFAULT_PROVIDER_REORDER_MAX_IDS: usize = 199;
-pub(super) const TRANSFORM_MIGRATION_BATCH_SIZE: usize = 199;
-pub(super) const TRANSFORM_MIGRATION_MARKER: &str = "migration.provider_transform_rule_ids.v2";
-pub(super) const OBSOLETE_TRANSFORM_MIGRATION_MARKER: &str = "migration.provider_transform_rule_ids.v1";
+pub(crate) const TRANSFORM_MIGRATION_BATCH_SIZE: usize = 199;
+pub(crate) const TRANSFORM_MIGRATION_MARKER: &str = "migration.provider_transform_rule_ids.v2";
+pub(crate) const OBSOLETE_TRANSFORM_MIGRATION_MARKER: &str = "migration.provider_transform_rule_ids.v1";
 
-pub(super) fn parse_positive_entry_limit(raw: Option<&str>, default: usize) -> usize {
+pub(crate) fn parse_positive_entry_limit(raw: Option<&str>, default: usize) -> usize {
     raw.and_then(|value| value.trim().parse::<usize>().ok())
         .filter(|value| *value > 0)
         .unwrap_or(default)
 }
 
-pub(super) fn parse_provider_reorder_limit(raw: Option<&str>) -> usize {
+pub(crate) fn parse_provider_reorder_limit(raw: Option<&str>) -> usize {
     parse_positive_entry_limit(raw, DEFAULT_PROVIDER_REORDER_MAX_IDS)
         .min(DEFAULT_PROVIDER_REORDER_MAX_IDS)
 }
 
-pub(super) fn provider_reorder_max_ids() -> usize {
+pub(crate) fn provider_reorder_max_ids() -> usize {
     static LIMIT: OnceLock<usize> = OnceLock::new();
     *LIMIT.get_or_init(|| {
         parse_provider_reorder_limit(
@@ -59,7 +59,7 @@ pub fn channel_affinity_cleanup_interval() -> Duration {
     })
 }
 
-pub(super) fn parse_channel_affinity_cleanup_interval(raw: Option<&str>) -> Duration {
+pub(crate) fn parse_channel_affinity_cleanup_interval(raw: Option<&str>) -> Duration {
     let seconds = raw
         .and_then(|value| value.trim().parse::<u64>().ok())
         .filter(|value| *value > 0)
@@ -107,7 +107,7 @@ pub fn effective_passive_failure_threshold(resolved_threshold: u32) -> usize {
     )
 }
 
-pub(super) fn effective_passive_failure_threshold_with_limit(resolved_threshold: u32, limit: usize) -> usize {
+pub(crate) fn effective_passive_failure_threshold_with_limit(resolved_threshold: u32, limit: usize) -> usize {
     (resolved_threshold.max(1) as usize).min(limit.max(1))
 }
 
@@ -118,7 +118,7 @@ pub fn prepare_channel_health_insert(
     prepare_channel_health_insert_with_limit(health, key, channel_health_max_entries())
 }
 
-pub(super) fn prepare_channel_health_insert_with_limit(
+pub(crate) fn prepare_channel_health_insert_with_limit(
     health: &mut HashMap<String, ChannelHealthState>,
     key: &str,
     limit: usize,
@@ -133,7 +133,7 @@ pub fn missing_channel_health_is_saturated(
     missing_channel_health_is_saturated_with_limit(health, key, channel_health_max_entries())
 }
 
-pub(super) fn missing_channel_health_is_saturated_with_limit(
+pub(crate) fn missing_channel_health_is_saturated_with_limit(
     health: &HashMap<String, ChannelHealthState>,
     key: &str,
     limit: usize,

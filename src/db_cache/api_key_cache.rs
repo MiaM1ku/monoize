@@ -30,8 +30,8 @@ pub(super) struct CachedApiKeyEntry {
 #[derive(Debug, Clone)]
 pub struct ApiKeyCache {
     cache: Arc<DashMap<String, CachedApiKeyEntry>>,
-    key_id_index: Arc<DashMap<String, std::collections::HashSet<String>>>,
-    user_id_index: Arc<DashMap<String, std::collections::HashSet<String>>>,
+    pub(crate) key_id_index: Arc<DashMap<String, std::collections::HashSet<String>>>,
+    pub(crate) user_id_index: Arc<DashMap<String, std::collections::HashSet<String>>>,
     generation: Arc<AtomicU64>,
     ttl: Duration,
     capacity: usize,
@@ -271,7 +271,7 @@ impl ApiKeyCache {
     }
 
     #[cfg(test)]
-    fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.cache.len()
     }
 }

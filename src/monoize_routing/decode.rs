@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use super::types::*;
 
-pub(super) fn decode_provider_group_ids_json(
+pub(crate) fn decode_provider_group_ids_json(
     provider_id: &str,
     raw: Option<String>,
 ) -> Result<Vec<String>, String> {
@@ -22,11 +22,11 @@ pub(super) fn decode_provider_group_ids_json(
     Ok(canonicalize_group_ids(&group_ids))
 }
 
-pub(super) fn serialize_provider_group_ids_json(group_ids: &[String]) -> Result<String, String> {
+pub(crate) fn serialize_provider_group_ids_json(group_ids: &[String]) -> Result<String, String> {
     serde_json::to_string(&canonicalize_group_ids(group_ids)).map_err(|e| e.to_string())
 }
 
-pub(super) fn decode_database_bool(
+pub(crate) fn decode_database_bool(
     entity: &str,
     entity_id: &str,
     field: &str,
@@ -41,7 +41,7 @@ pub(super) fn decode_database_bool(
     }
 }
 
-pub(super) fn generate_short_id() -> String {
+pub(crate) fn generate_short_id() -> String {
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let bytes = uuid::Uuid::new_v4().into_bytes();
     (0..8)
@@ -50,14 +50,14 @@ pub(super) fn generate_short_id() -> String {
 }
 
 /// CP-INV-14: trim and treat empty as NULL (follow-global).
-pub(super) fn normalized_proxy_url(raw: Option<&str>) -> Option<String> {
+pub(crate) fn normalized_proxy_url(raw: Option<&str>) -> Option<String> {
     raw.map(str::trim)
         .filter(|value| !value.is_empty())
         .map(str::to_string)
 }
 
 /// CP-INV-15: reserved header names that must not be overridden by Channel extras.
-pub(super) const EXTRA_HEADERS_RESERVED: &[&str] = &[
+pub(crate) const EXTRA_HEADERS_RESERVED: &[&str] = &[
     "authorization",
     "host",
     "content-length",
@@ -71,11 +71,11 @@ pub(super) const EXTRA_HEADERS_RESERVED: &[&str] = &[
     "trailer",
 ];
 
-pub(super) const EXTRA_HEADERS_MAX_ENTRIES: usize = 16;
-pub(super) const EXTRA_HEADERS_MAX_KEY_LEN: usize = 128;
-pub(super) const EXTRA_HEADERS_MAX_VALUE_LEN: usize = 4096;
+pub(crate) const EXTRA_HEADERS_MAX_ENTRIES: usize = 16;
+pub(crate) const EXTRA_HEADERS_MAX_KEY_LEN: usize = 128;
+pub(crate) const EXTRA_HEADERS_MAX_VALUE_LEN: usize = 4096;
 
-pub(super) fn validate_channel_extra_headers(
+pub(crate) fn validate_channel_extra_headers(
     channel_name: &str,
     headers: &BTreeMap<String, String>,
 ) -> Result<(), String> {
@@ -136,7 +136,7 @@ pub(super) fn validate_channel_extra_headers(
 
 /// CP-INV-15a: trim keys, drop nothing else, canonical JSON with sorted keys;
 /// an empty map persists as NULL.
-pub(super) fn normalized_extra_headers_json(raw: Option<&BTreeMap<String, String>>) -> Option<String> {
+pub(crate) fn normalized_extra_headers_json(raw: Option<&BTreeMap<String, String>>) -> Option<String> {
     let headers = raw?;
     let mut trimmed: BTreeMap<&str, &String> = BTreeMap::new();
     for (key, value) in headers {
@@ -148,7 +148,7 @@ pub(super) fn normalized_extra_headers_json(raw: Option<&BTreeMap<String, String
     serde_json::to_string(&trimmed).ok()
 }
 
-pub(super) fn decode_extra_headers(raw: Option<String>) -> Result<Option<BTreeMap<String, String>>, String> {
+pub(crate) fn decode_extra_headers(raw: Option<String>) -> Result<Option<BTreeMap<String, String>>, String> {
     let Some(text) = raw.filter(|value| !value.trim().is_empty()) else {
         return Ok(None);
     };
@@ -157,7 +157,7 @@ pub(super) fn decode_extra_headers(raw: Option<String>) -> Result<Option<BTreeMa
         .map_err(|e| format!("invalid stored extra_headers JSON: {e}"))
 }
 
-pub(super) fn decode_channel_model_row(row: &QueryResult, model: &str) -> Result<MonoizeChannel, String> {
+pub(crate) fn decode_channel_model_row(row: &QueryResult, model: &str) -> Result<MonoizeChannel, String> {
     let id: String = row.try_get("", "id").map_err(|e| e.to_string())?;
     let multiplier = row
         .try_get::<String>("", "multiplier")
@@ -174,7 +174,7 @@ pub(super) fn decode_channel_model_row(row: &QueryResult, model: &str) -> Result
     decode_channel_row(row, models)
 }
 
-pub(super) fn decode_channel_row(
+pub(crate) fn decode_channel_row(
     row: &QueryResult,
     models: HashMap<String, MonoizeModelEntry>,
 ) -> Result<MonoizeChannel, String> {
@@ -335,7 +335,7 @@ pub(super) fn decode_channel_row(
     })
 }
 
-pub(super) fn decode_provider_row(
+pub(crate) fn decode_provider_row(
     row: &QueryResult,
     channels: Vec<MonoizeChannel>,
 ) -> Result<MonoizeProvider, String> {
@@ -463,35 +463,35 @@ pub(super) fn decode_provider_row(
 }
 
 
-pub(super) fn opt_bool_to_value(v: Option<bool>) -> SeaValue {
+pub(crate) fn opt_bool_to_value(v: Option<bool>) -> SeaValue {
     match v {
         Some(b) => SeaValue::Int(Some(if b { 1 } else { 0 })),
         None => SeaValue::Int(None),
     }
 }
 
-pub(super) fn opt_u64_to_value(v: Option<u64>) -> SeaValue {
+pub(crate) fn opt_u64_to_value(v: Option<u64>) -> SeaValue {
     match v {
         Some(n) => SeaValue::Int(Some(n as i32)),
         None => SeaValue::Int(None),
     }
 }
 
-pub(super) fn decode_positive_u32(provider_id: &str, field: &str, value: i64) -> Result<u32, String> {
+pub(crate) fn decode_positive_u32(provider_id: &str, field: &str, value: i64) -> Result<u32, String> {
     u32::try_from(value)
         .ok()
         .filter(|v| *v >= 1)
         .ok_or_else(|| format!("provider {provider_id} invalid {field}: must be >= 1"))
 }
 
-pub(super) fn decode_positive_u64(provider_id: &str, field: &str, value: i64) -> Result<u64, String> {
+pub(crate) fn decode_positive_u64(provider_id: &str, field: &str, value: i64) -> Result<u64, String> {
     u64::try_from(value)
         .ok()
         .filter(|v| *v >= 1)
         .ok_or_else(|| format!("provider {provider_id} invalid {field}: must be >= 1"))
 }
 
-pub(super) fn decode_nonnegative_u64(provider_id: &str, field: &str, value: i64) -> Result<u64, String> {
+pub(crate) fn decode_nonnegative_u64(provider_id: &str, field: &str, value: i64) -> Result<u64, String> {
     u64::try_from(value)
         .map_err(|_| format!("provider {provider_id} invalid {field}: must be >= 0"))
 }

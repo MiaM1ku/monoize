@@ -14,7 +14,7 @@ use super::env::positive_env_usize;
 
 #[derive(Debug, Clone)]
 pub struct LastUsedBatcher {
-    buffer: Arc<DashMap<String, DateTime<Utc>>>,
+    pub(crate) buffer: Arc<DashMap<String, DateTime<Utc>>>,
     capacity: usize,
     record_lock: Arc<std::sync::Mutex<()>>,
     flush_chunk_entries: usize,

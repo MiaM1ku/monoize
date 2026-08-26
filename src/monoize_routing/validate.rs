@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use super::types::*;
 use super::decode::validate_channel_extra_headers;
 
-pub(super) fn canonicalize_models(
+pub(crate) fn canonicalize_models(
     models: &HashMap<String, MonoizeModelEntry>,
 ) -> HashMap<String, MonoizeModelEntry> {
     let mut out = HashMap::new();
@@ -29,7 +29,7 @@ pub(super) fn canonicalize_models(
     out
 }
 
-pub(super) fn validate_models(models: &HashMap<String, MonoizeModelEntry>) -> Result<(), String> {
+pub(crate) fn validate_models(models: &HashMap<String, MonoizeModelEntry>) -> Result<(), String> {
     for model in models.keys() {
         if model.trim().is_empty() {
             return Err("model key must not be empty".to_string());
@@ -38,7 +38,7 @@ pub(super) fn validate_models(models: &HashMap<String, MonoizeModelEntry>) -> Re
     Ok(())
 }
 
-pub(super) fn validate_channels(
+pub(crate) fn validate_channels(
     channels: &[CreateMonoizeChannelInput],
     require_api_key: bool,
 ) -> Result<(), String> {
@@ -151,7 +151,7 @@ pub(super) fn validate_channels(
     Ok(())
 }
 
-pub(super) fn validate_provider_input(
+pub(crate) fn validate_provider_input(
     name: &str,
     channels: &[CreateMonoizeChannelInput],
     api_type_overrides: &[ApiTypeOverride],
@@ -164,7 +164,7 @@ pub(super) fn validate_provider_input(
     Ok(())
 }
 
-pub(super) fn validate_api_type_overrides(overrides: &[ApiTypeOverride]) -> Result<(), String> {
+pub(crate) fn validate_api_type_overrides(overrides: &[ApiTypeOverride]) -> Result<(), String> {
     for (idx, entry) in overrides.iter().enumerate() {
         if entry.pattern.trim().is_empty() {
             return Err(format!(

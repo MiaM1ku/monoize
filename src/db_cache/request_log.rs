@@ -17,7 +17,7 @@ use super::env::{positive_env_usize, positive_env_u64};
 // RequestLogBatcher: buffers InsertRequestLog entries, flushes as batch INSERT
 // ---------------------------------------------------------------------------
 
-pub(super) const REQUEST_LOG_INSERT_COLUMNS: usize = 38;
+pub(crate) const REQUEST_LOG_INSERT_COLUMNS: usize = 38;
 pub(crate) const REQUEST_LOG_INSERT_CHUNK_ENTRIES: usize = 20;
 pub(crate) const REQUEST_LOG_MIN_ENTRY_BYTES: u64 = 4_096;
 pub(super) const REQUEST_LOG_RETRY_INITIAL_DELAY: Duration = Duration::from_millis(10);
@@ -99,7 +99,7 @@ pub struct SpoolRequestLog {
 }
 
 impl SpoolRequestLog {
-    fn from_log(id: String, log: &InsertRequestLog) -> Self {
+    pub(crate) fn from_log(id: String, log: &InsertRequestLog) -> Self {
         Self {
             id,
             request_id: log.request_id.clone(),
@@ -348,20 +348,20 @@ pub enum RequestLogAdmissionError {
 
 #[derive(Clone, Debug)]
 pub struct RequestLogReservation {
-    inner: Arc<RequestLogReservationInner>,
+    pub(crate) inner: Arc<RequestLogReservationInner>,
 }
 
 #[derive(Debug)]
-pub(super) struct RequestLogReservationInner {
-    admitted_total: Arc<AtomicU64>,
-    spool_bytes: Arc<AtomicU64>,
-    bytes: u64,
-    state: std::sync::atomic::AtomicU8,
-    armed_bytes: AtomicU64,
-    marker_path: std::sync::Mutex<Option<std::path::PathBuf>>,
-    spool_dir: std::path::PathBuf,
-    stable_id: Option<String>,
-    final_path: Option<std::path::PathBuf>,
+pub(crate) struct RequestLogReservationInner {
+    pub(crate) admitted_total: Arc<AtomicU64>,
+    pub(crate) spool_bytes: Arc<AtomicU64>,
+    pub(crate) bytes: u64,
+    pub(crate) state: std::sync::atomic::AtomicU8,
+    pub(crate) armed_bytes: AtomicU64,
+    pub(crate) marker_path: std::sync::Mutex<Option<std::path::PathBuf>>,
+    pub(crate) spool_dir: std::path::PathBuf,
+    pub(crate) stable_id: Option<String>,
+    pub(crate) final_path: Option<std::path::PathBuf>,
 }
 
 impl RequestLogReservation {
@@ -370,7 +370,7 @@ impl RequestLogReservation {
         Arc::ptr_eq(&self.inner, &other.inner)
     }
 
-    fn claim(&self, owner: &Arc<AtomicU64>) -> Result<(), RequestLogAdmissionError> {
+    pub(crate) fn claim(&self, owner: &Arc<AtomicU64>) -> Result<(), RequestLogAdmissionError> {
         if !Arc::ptr_eq(&self.inner.admitted_total, owner) {
             return Err(RequestLogAdmissionError::InvalidReservation);
         }
@@ -386,7 +386,7 @@ impl RequestLogReservation {
             .map_err(|_| RequestLogAdmissionError::InvalidReservation)
     }
 
-    fn begin_arm(&self, owner: &Arc<AtomicU64>) -> Result<(), RequestLogAdmissionError> {
+    pub(crate) fn begin_arm(&self, owner: &Arc<AtomicU64>) -> Result<(), RequestLogAdmissionError> {
         if !Arc::ptr_eq(&self.inner.admitted_total, owner)
             || self.inner.stable_id.is_none()
             || self.inner.final_path.is_none()
@@ -405,7 +405,7 @@ impl RequestLogReservation {
             .map_err(|_| RequestLogAdmissionError::InvalidReservation)
     }
 
-    fn finish_arm(&self, actual_bytes: u64) {
+    pub(crate) fn finish_arm(&self, actual_bytes: u64) {
         self.inner
             .armed_bytes
             .store(actual_bytes, Ordering::Release);
@@ -414,7 +414,7 @@ impl RequestLogReservation {
             .store(REQUEST_LOG_RESERVATION_ARMED, Ordering::Release);
     }
 
-    fn abort_arm(&self) {
+    pub(crate) fn abort_arm(&self) {
         let _ = self.inner.state.compare_exchange(
             REQUEST_LOG_RESERVATION_ARMING,
             REQUEST_LOG_RESERVATION_UNARMED,
@@ -423,7 +423,7 @@ impl RequestLogReservation {
         );
     }
 
-    fn begin_cancel(&self, owner: &Arc<AtomicU64>) -> Result<(), RequestLogAdmissionError> {
+    pub(crate) fn begin_cancel(&self, owner: &Arc<AtomicU64>) -> Result<(), RequestLogAdmissionError> {
         if !Arc::ptr_eq(&self.inner.admitted_total, owner) {
             return Err(RequestLogAdmissionError::InvalidReservation);
         }
@@ -439,7 +439,7 @@ impl RequestLogReservation {
             .map_err(|_| RequestLogAdmissionError::InvalidReservation)
     }
 
-    fn abort_cancel(&self) {
+    pub(crate) fn abort_cancel(&self) {
         let _ = self.inner.state.compare_exchange(
             REQUEST_LOG_RESERVATION_CANCELING,
             REQUEST_LOG_RESERVATION_ARMED,
@@ -448,7 +448,7 @@ impl RequestLogReservation {
         );
     }
 
-    fn finish_cancel(&self) {
+    pub(crate) fn finish_cancel(&self) {
         self.inner
             .marker_path
             .lock()
@@ -463,7 +463,7 @@ impl RequestLogReservation {
             .fetch_sub(self.inner.bytes, Ordering::AcqRel);
     }
 
-    fn consume(&self, actual_bytes: u64) {
+    pub(crate) fn consume(&self, actual_bytes: u64) {
         self.inner.remove_marker();
         if self
             .inner
@@ -612,15 +612,15 @@ pub(super) fn request_log_u64_value(
 
 #[derive(Clone)]
 pub struct RequestLogBatcher {
-    buffer: Arc<Mutex<Vec<SpoolFileRef>>>,
-    flush_lock: Arc<Mutex<()>>,
-    memory_capacity: usize,
-    spool_dir: Arc<std::path::PathBuf>,
-    spool_max_bytes: u64,
-    spool_entry_max_bytes: u64,
-    spool_bytes: Arc<AtomicU64>,
-    admitted_bytes: Arc<AtomicU64>,
-    spool_healthy: Arc<std::sync::atomic::AtomicBool>,
+    pub(crate) buffer: Arc<Mutex<Vec<SpoolFileRef>>>,
+    pub(crate) flush_lock: Arc<Mutex<()>>,
+    pub(crate) memory_capacity: usize,
+    pub(crate) spool_dir: Arc<std::path::PathBuf>,
+    pub(crate) spool_max_bytes: u64,
+    pub(crate) spool_entry_max_bytes: u64,
+    pub(crate) spool_bytes: Arc<AtomicU64>,
+    pub(crate) admitted_bytes: Arc<AtomicU64>,
+    pub(crate) spool_healthy: Arc<std::sync::atomic::AtomicBool>,
     spool_error: Arc<std::sync::Mutex<Option<String>>>,
     broadcast: tokio::sync::broadcast::Sender<Vec<InsertRequestLog>>,
     pending_snapshots: Arc<DashMap<String, InsertRequestLog>>,
@@ -1239,7 +1239,7 @@ impl RequestLogBatcher {
     }
 }
 
-pub(super) fn atomic_saturating_sub(counter: &AtomicU64, amount: u64) {
+pub(crate) fn atomic_saturating_sub(counter: &AtomicU64, amount: u64) {
     let _ = counter.fetch_update(Ordering::AcqRel, Ordering::Acquire, |current| {
         Some(current.saturating_sub(amount))
     });

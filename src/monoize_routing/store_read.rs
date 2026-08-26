@@ -28,7 +28,7 @@ impl MonoizeRoutingStore {
         Ok(Self { db })
     }
 
-    pub(super) async fn migrate_transform_rule_ids(&self) -> Result<(), String> {
+    pub(crate) async fn migrate_transform_rule_ids(&self) -> Result<(), String> {
         let marker = self
             .db
             .read()

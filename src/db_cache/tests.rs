@@ -1,5 +1,17 @@
     use super::*;
-    use crate::users::{ApiKey, RequestCaptureMode, RequestLogNameSnapshots, UserRole};
+    use super::request_log::{
+        REQUEST_LOG_INSERT_COLUMNS, RequestLogReservationInner, SpoolFileRef,
+        atomic_saturating_sub,
+    };
+    use crate::users::{
+        ApiKey, InsertRequestLog, RequestCaptureMode, RequestLogNameSnapshots, User, UserBalance,
+        UserRole,
+    };
+    use chrono::Utc;
+    use dashmap::DashMap;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::Duration;
     use tempfile::TempDir;
 
     fn spool_request_log(id: &str) -> SpoolRequestLog {

@@ -42,7 +42,7 @@ pub fn resolve_effective_api_type(
     default_type
 }
 
-pub(super) fn glob_match(pattern: &str, value: &str) -> bool {
+pub(crate) fn glob_match(pattern: &str, value: &str) -> bool {
     crate::glob::case_sensitive_glob_match(pattern, value)
 }
 
@@ -55,9 +55,9 @@ pub struct ChannelProbeOutcome {
     pub error: Option<String>,
 }
 
-pub(super) const PROBE_ERROR_BODY_MAX_CHARS: usize = 512;
+pub(crate) const PROBE_ERROR_BODY_MAX_CHARS: usize = 512;
 
-pub(super) fn truncate_probe_body(body: &str) -> String {
+pub(crate) fn truncate_probe_body(body: &str) -> String {
     let body = body.trim();
     if body.chars().count() <= PROBE_ERROR_BODY_MAX_CHARS {
         return body.to_string();
@@ -83,7 +83,7 @@ pub fn format_probe_http_error(status: reqwest::StatusCode, body: &str) -> Strin
     }
 }
 
-pub(super) fn probe_error_metadata(body: &str) -> (Option<String>, Option<String>) {
+pub(crate) fn probe_error_metadata(body: &str) -> (Option<String>, Option<String>) {
     let Ok(value) = serde_json::from_str::<Value>(body) else {
         return (None, None);
     };
@@ -101,7 +101,7 @@ pub(super) fn probe_error_metadata(body: &str) -> (Option<String>, Option<String
     (code, error_type)
 }
 
-pub(super) fn probe_stream_error(
+pub(crate) fn probe_stream_error(
     value: &Value,
     sse_event: &str,
 ) -> Option<(Option<String>, Option<String>, String)> {
@@ -145,7 +145,7 @@ pub(super) fn probe_stream_error(
     ))
 }
 
-pub(super) async fn read_probe_stream(
+pub(crate) async fn read_probe_stream(
     response: reqwest::Response,
     effective_type: MonoizeProviderType,
 ) -> ChannelProbeOutcome {
@@ -375,7 +375,7 @@ pub async fn probe_channel_completion(
     }
 }
 
-pub(super) fn build_probe_request(
+pub(crate) fn build_probe_request(
     base: &str,
     model: &str,
     effective_type: MonoizeProviderType,
@@ -448,7 +448,7 @@ pub(super) fn build_probe_request(
     }
 }
 
-pub(super) fn extract_probe_usage(body: &Value) -> Option<Value> {
+pub(crate) fn extract_probe_usage(body: &Value) -> Option<Value> {
     if let Some(usage) = body.get("usage") {
         let prompt_tokens = usage
             .get("prompt_tokens")

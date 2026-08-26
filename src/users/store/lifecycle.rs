@@ -106,7 +106,7 @@ impl UserStore {
         self
     }
 
-    async fn migrate_transform_rule_ids(&self) -> Result<(), String> {
+    pub(crate) async fn migrate_transform_rule_ids(&self) -> Result<(), String> {
         const TRANSFORM_MIGRATION_MARKER: &str = "migration.api_key_transform_rule_ids.v2";
         const OBSOLETE_TRANSFORM_MIGRATION_MARKER: &str = "migration.api_key_transform_rule_ids.v1";
         const TRANSFORM_MIGRATION_CHUNK_SIZE: usize = 300;
