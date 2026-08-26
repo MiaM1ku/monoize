@@ -1078,6 +1078,8 @@ export async function upsertModelPriceOptimistic(
     const result = await api.upsertModelPrice(modelId, input);
     mutate(SWR_KEYS.MODEL_PRICES);
     mutate(SWR_KEYS.UNPRICED_MODELS);
+    mutate(SWR_KEYS.MARKETPLACE_MODELS);
+    mutate(SWR_KEYS.PROVIDERS);
     return result;
   } catch (error) {
     mutate(SWR_KEYS.MODEL_PRICES, currentRecords, false);
@@ -1103,6 +1105,8 @@ export async function deleteModelPriceOptimistic(
     await api.deleteModelPrice(modelId);
     mutate(SWR_KEYS.MODEL_PRICES);
     mutate(SWR_KEYS.UNPRICED_MODELS);
+    mutate(SWR_KEYS.MARKETPLACE_MODELS);
+    mutate(SWR_KEYS.PROVIDERS);
   } catch (error) {
     mutate(SWR_KEYS.MODEL_PRICES, currentRecords, false);
     if (onError && error instanceof Error) {
@@ -1122,6 +1126,8 @@ export async function applyPriceSync(
     mutate(SWR_KEYS.UNPRICED_MODELS);
     mutate(SWR_KEYS.PRICE_SYNC_RUNS);
     mutate(SWR_KEYS.MODEL_METADATA);
+    mutate(SWR_KEYS.MARKETPLACE_MODELS);
+    mutate(SWR_KEYS.PROVIDERS);
     return run;
   } catch (error) {
     if (onError && error instanceof Error) {
