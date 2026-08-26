@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="935" height="590" viewBox="0 0 935 590">
+  <!--
+    Hand-authored recreation of the "403 Forbiden" anti-hotlink placeholder image
+    (935x590). All geometry below was written by hand from pixel measurements of
+    the reference PNG; no auto-tracing was used.
+
+    Measured palette:
+      background #DEEBF7, frame #262626, dotted crosshair ~#C9D2DB,
+      title red #C00000, body text #000000.
+  -->
+  <rect width="935" height="590" fill="#DEEBF7"/>
+
+  <!-- Dotted crosshair behind the frame; spans the full frame box so the
+       horizontal run stays visible inside the right-side gap of the frame. -->
+  <g stroke="#C9D2DB" stroke-width="2" stroke-dasharray="2.2 1.8" fill="none">
+    <line x1="46" y1="134" x2="175.5" y2="134"/>
+    <line x1="111.5" y1="70" x2="111.5" y2="199"/>
+  </g>
+
+  <!-- Incomplete square frame: full top, left and bottom bars; the right bar
+       is split into two segments leaving a gap between y=106 and y=160. -->
+  <g fill="#262626">
+    <rect x="47" y="71" width="128" height="7"/>
+    <rect x="47" y="71" width="7" height="128"/>
+    <rect x="47" y="192" width="128" height="7"/>
+    <rect x="168" y="71" width="7" height="35"/>
+    <rect x="168" y="160" width="7" height="39"/>
+  </g>
+
+  <!-- Digits "16", hand-drawn as paths (serif style, near-monoline). -->
+  <g fill="#000000">
+    <!-- "1": down-left flag, vertical stem, wide flat base serif -->
+    <path d="M 95.5 108.5
+             L 95.5 153.5
+             L 90.5 153.5
+             L 90.5 114
+             Q 85.5 116 81.5 117
+             L 81.5 112.5
+             Q 89.5 110.5 93.5 108.5
+             Z"/>
+    <rect x="78.5" y="153.5" width="27" height="5"/>
+  </g>
+  <g fill="none" stroke="#000000">
+    <!-- "6": upper hook stroke flowing into the left side, plus ring bowl -->
+    <path d="M 141.5 113.5
+             C 138 109.5 133 107.8 128.5 109.3
+             C 122 111.8 117.5 119 117.5 128.5
+             L 117.5 142" stroke-width="5"/>
+    <ellipse cx="129.75" cy="143" rx="12" ry="13.3" stroke-width="5.2"/>
+  </g>
+
+  <!-- Text block. The reference centers the CJK and English lines at x=467
+       while the red title is centered at x=443. -->
+  <text x="445.5" y="264.5" text-anchor="middle" fill="#C00000"
+        font-family="'Source Sans 3','Source Sans Pro','Noto Sans CJK SC','Source Han Sans SC','Noto Sans',sans-serif"
+        font-size="65.5" font-weight="500">403 Forbiden</text>
+
+  <g fill="#000000" text-anchor="middle"
+     font-family="'Noto Sans CJK SC','Source Han Sans SC','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif">
+    <text x="468" y="360" font-size="58.2" font-weight="400">&#x53EA;&#x5141;&#x8BB8;&#x5C06;&#x56FE;&#x7247;&#x5D4C;&#x5165;&#x7F51;&#x9875;</text>
+    <text x="467.5" y="429.5" font-size="58.2" font-weight="400">&#x7981;&#x6B62;&#x4F7F;&#x7528;&#x76F4;&#x94FE;&#x4E0B;&#x8F7D;</text>
+  </g>
+
+  <g fill="#000000" text-anchor="middle"
+     font-family="'Source Sans 3','Source Sans Pro','Noto Sans CJK SC','Source Han Sans SC','Noto Sans',sans-serif"
+     font-size="37.2" font-weight="400">
+    <text x="467" y="475">Only allow images to be embedded in web pages</text>
+    <text x="467.5" y="513.5">Direct link downloads are prohibited</text>
+  </g>
+</svg>
