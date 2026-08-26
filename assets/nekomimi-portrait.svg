@@ -1,750 +1,659 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"
-     role="img" aria-labelledby="svgTitle svgDesc">
-  <title id="svgTitle">Nekomimi sailor-uniform portrait</title>
-  <desc id="svgDesc">Hand-written SVG recreation of an anime cat-eared girl in a Japanese sailor
-    uniform, drawn over a halftone red disc and two fans of blue brush strokes on cream paper.</desc>
+     role="img" aria-labelledby="ttl desc">
+  <title id="ttl">Nekomimi sailor-uniform portrait</title>
+  <desc id="desc">Hand-written SVG recreation of a cat-eared anime portrait: white bob hair,
+  navy sailor collar, navy bow with a white lily, over a halftone red disc and blue brush strokes.</desc>
 
   <defs>
-    <!-- ==================== HALFTONE SCREENS ====================
-         Two dots per square tile produce a 45-degree screen whose pitch is
-         tile/sqrt(2). The dot radius sets ink coverage. -->
-    <pattern id="dotRed" width="5.6" height="5.6" patternUnits="userSpaceOnUse">
-      <circle cx="1.4" cy="1.4" r="1.25" fill="#d4553d"/>
-      <circle cx="4.2" cy="4.2" r="1.25" fill="#d4553d"/>
+    <!-- ============ halftone patterns ============ -->
+    <pattern id="htRed" patternUnits="userSpaceOnUse" width="3.4" height="3.4" patternTransform="rotate(18)">
+      <circle cx="0.85" cy="0.85" r="0.95" fill="#e8644c"/>
+      <circle cx="2.55" cy="2.55" r="0.95" fill="#e8644c"/>
     </pattern>
-    <pattern id="dotRedEdge" width="5.6" height="5.6" patternUnits="userSpaceOnUse">
-      <circle cx="1.4" cy="1.4" r="1.5" fill="#e9694f"/>
-      <circle cx="4.2" cy="4.2" r="1.5" fill="#e9694f"/>
+    <pattern id="htRedTex" patternUnits="userSpaceOnUse" width="3.4" height="3.4" patternTransform="rotate(18)">
+      <circle cx="0.85" cy="0.85" r="0.8" fill="#cf4630"/>
+      <circle cx="2.55" cy="2.55" r="0.8" fill="#cf4630"/>
     </pattern>
-    <pattern id="dotBlue" width="5.6" height="5.6" patternUnits="userSpaceOnUse">
-      <circle cx="1.4" cy="1.4" r="1.6" fill="#4a80c0"/>
-      <circle cx="4.2" cy="4.2" r="1.6" fill="#4a80c0"/>
+    <pattern id="htBlue" patternUnits="userSpaceOnUse" width="3.4" height="3.4" patternTransform="rotate(-14)">
+      <circle cx="0.85" cy="0.85" r="0.95" fill="#4c84c4"/>
+      <circle cx="2.55" cy="2.55" r="0.95" fill="#4c84c4"/>
     </pattern>
-    <pattern id="dotBlueFaint" width="6.4" height="6.4" patternUnits="userSpaceOnUse">
-      <circle cx="1.6" cy="1.6" r="1.3" fill="#6094ce"/>
-      <circle cx="4.8" cy="4.8" r="1.3" fill="#6094ce"/>
-    </pattern>
-    <!-- Woven texture inside the navy cloth: a faint diagonal lattice. -->
-    <pattern id="weaveNavy" width="4.4" height="4.4" patternUnits="userSpaceOnUse"
-             patternTransform="rotate(45)">
-      <path d="M0,0 H4.4 M0,0 V4.4" stroke="#2a5f9e" stroke-width="0.9" opacity="0.5"/>
-    </pattern>
-    <pattern id="dotHair" width="5.2" height="5.2" patternUnits="userSpaceOnUse">
-      <circle cx="1.3" cy="1.3" r="1.1" fill="#8ba3c6"/>
-      <circle cx="3.9" cy="3.9" r="1.1" fill="#8ba3c6"/>
+    <pattern id="htNavy" patternUnits="userSpaceOnUse" width="3.4" height="3.4" patternTransform="rotate(30)">
+      <circle cx="0.85" cy="0.85" r="0.9" fill="#2f5f99"/>
+      <circle cx="2.55" cy="2.55" r="0.9" fill="#2f5f99"/>
     </pattern>
 
-    <!-- ==================== GRADIENTS ==================== -->
-    <linearGradient id="hairGrad" x1="0.15" y1="0" x2="0.55" y2="1">
-      <stop offset="0"    stop-color="#fbf7f1"/>
-      <stop offset="0.5"  stop-color="#efe9e1"/>
-      <stop offset="1"    stop-color="#d8dce6"/>
+    <!-- Dry-brush edge: displacing the rendered stroke with fractal noise gives the
+         ragged border of a loaded flat brush without any bitmap input. -->
+    <filter id="rough" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="4" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="roughSoft" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="5" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="roughDisc" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="23" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- ============ gradients ============ -->
+    <linearGradient id="hairGrad" x1="0" y1="110" x2="0" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#fbfaf6"/>
+      <stop offset="0.5"  stop-color="#f1f1f0"/>
+      <stop offset="1"    stop-color="#d8dfec"/>
     </linearGradient>
-    <linearGradient id="lockGrad" x1="0.25" y1="0" x2="0.65" y2="1">
-      <stop offset="0"    stop-color="#fdfaf5"/>
-      <stop offset="0.6"  stop-color="#f2ede4"/>
-      <stop offset="1"    stop-color="#d9dde8"/>
+    <linearGradient id="lockGrad" x1="0" y1="200" x2="0" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#fbfaf7"/>
+      <stop offset="0.6" stop-color="#eeeff2"/>
+      <stop offset="1"   stop-color="#d2dbeb"/>
     </linearGradient>
-    <linearGradient id="skinGrad" x1="0.2" y1="0" x2="0.8" y2="1">
-      <stop offset="0"   stop-color="#fdeada"/>
-      <stop offset="1"   stop-color="#f6d2b6"/>
+    <linearGradient id="skinGrad" x1="0" y1="300" x2="0" y2="510" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#fdeddd"/>
+      <stop offset="0.7" stop-color="#fce7d5"/>
+      <stop offset="1"   stop-color="#f9dcc7"/>
     </linearGradient>
-    <linearGradient id="clothGrad" x1="0.15" y1="0" x2="0.6" y2="1">
-      <stop offset="0"   stop-color="#fdf8ed"/>
-      <stop offset="1"   stop-color="#f0eadb"/>
+    <linearGradient id="shirtGrad" x1="0" y1="500" x2="0" y2="770" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#fcf7ec"/>
+      <stop offset="1"   stop-color="#f4eeda"/>
     </linearGradient>
-    <linearGradient id="navyGrad" x1="0.1" y1="0" x2="0.75" y2="1">
-      <stop offset="0"   stop-color="#0f3f7c"/>
-      <stop offset="1"   stop-color="#062659"/>
+    <linearGradient id="navyGrad" x1="230" y1="520" x2="610" y2="720" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#154382"/>
+      <stop offset="0.5" stop-color="#103a74"/>
+      <stop offset="1"   stop-color="#0b3065"/>
     </linearGradient>
-    <linearGradient id="bowGrad" x1="0" y1="0" x2="0.9" y2="0.8">
-      <stop offset="0"   stop-color="#0e3c78"/>
-      <stop offset="1"   stop-color="#041d4b"/>
-    </linearGradient>
-    <radialGradient id="irisGrad" cx="0.5" cy="0.3" r="0.8">
-      <stop offset="0"    stop-color="#31629e"/>
-      <stop offset="0.42" stop-color="#1a3d73"/>
-      <stop offset="0.70" stop-color="#4b7eb7"/>
-      <stop offset="1"    stop-color="#cfe1f0"/>
+    <radialGradient id="iris" cx="0.5" cy="0.3" r="0.75">
+      <stop offset="0"    stop-color="#5b9dd2"/>
+      <stop offset="0.4"  stop-color="#2c66a6"/>
+      <stop offset="0.78" stop-color="#12356b"/>
+      <stop offset="1"    stop-color="#091f45"/>
     </radialGradient>
-    <linearGradient id="irisTop" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0"    stop-color="#0a1c40"/>
-      <stop offset="0.5"  stop-color="#0a1c40" stop-opacity="0.2"/>
-      <stop offset="1"    stop-color="#0a1c40" stop-opacity="0"/>
+    <linearGradient id="petalGrad" x1="556" y1="196" x2="556" y2="312" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#fffdf8"/>
+      <stop offset="1"   stop-color="#f0e0d1"/>
     </linearGradient>
 
-    <!-- The blouse dissolves into the paper along the lower edge. -->
-    <linearGradient id="fadeGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0"     stop-color="#ffffff"/>
-      <stop offset="0.920" stop-color="#ffffff"/>
-      <stop offset="0.963" stop-color="#000000"/>
+    <!-- ============ shared outlines ============ -->
+    <path id="hairSil"
+          d="M400,114
+             C364,112 336,120 316,138
+             C300,152 292,172 290,200
+             C288,232 286,254 280,262
+             C252,272 216,296 202,336
+             C192,368 192,400 200,438
+             C210,474 236,502 272,518
+             C290,526 306,526 318,518
+             L466,518
+             C480,528 496,530 512,524
+             C548,512 572,484 580,446
+             C588,404 586,362 578,326
+             C570,292 556,272 542,262
+             C536,236 530,206 520,184
+             C510,158 496,138 478,128
+             C456,118 428,114 400,114 Z"/>
+    <clipPath id="clipHair"><use href="#hairSil"/></clipPath>
+
+    <path id="lockL"
+          d="M240,270 C214,300 198,340 194,384
+             C192,424 202,462 226,492
+             C248,518 282,530 306,522
+             C288,500 274,466 268,424
+             C262,380 268,330 280,290 Z"/>
+    <path id="lockR"
+          d="M548,272 C570,304 582,346 584,392
+             C586,432 576,470 552,498
+             C532,520 502,528 484,518
+             C502,494 516,456 520,412
+             C524,364 518,314 508,282 Z"/>
+
+    <path id="fringe"
+          d="M202,330
+             C204,254 232,186 272,152
+             C310,120 356,110 400,114
+             C452,116 498,132 528,162
+             C558,192 574,240 576,306
+             C572,332 564,352 552,350
+             C540,340 532,318 526,302
+             C518,324 506,336 494,330
+             C482,320 472,300 466,288
+             C458,320 448,356 434,366
+             C424,354 414,326 408,306
+             C400,326 390,338 378,336
+             C366,330 356,308 350,292
+             C342,324 330,362 316,370
+             C304,360 294,330 288,312
+             C278,332 262,344 248,342
+             C232,336 214,336 202,330 Z"/>
+
+    <path id="collarLeft"
+          d="M228,537
+             C252,527 282,519 310,515
+             C336,512 358,512 373,517
+             C377,532 380,545 386,558
+             C395,582 406,604 418,632
+             C428,656 436,678 443,701
+             C425,701 409,695 390,686
+             C366,672 344,660 326,637
+             C304,610 284,588 262,568
+             C250,556 240,543 228,537 Z"/>
+    <path id="collarRight"
+          d="M466,514
+             C512,514 556,524 588,544
+             C598,550 604,558 606,564
+             C600,582 582,606 561,635
+             C540,664 512,694 470,714
+             C458,700 454,684 458,664
+             C464,630 472,596 478,566
+             C482,548 478,530 466,514 Z"/>
+    <clipPath id="clipCollarL"><use href="#collarLeft"/></clipPath>
+    <clipPath id="clipCollarR"><use href="#collarRight"/></clipPath>
+
+    <path id="tailA"
+          d="M556,344 C568,348 580,356 588,364
+             C586,392 586,420 590,448
+             C594,478 604,508 620,532
+             C630,542 638,548 644,550
+             C648,540 648,528 644,516
+             C634,488 624,452 616,414
+             C608,378 598,350 586,330 Z"/>
+    <path id="tailB"
+          d="M610,340 C620,346 630,356 638,368
+             C648,386 660,410 670,434
+             C680,458 688,478 692,492
+             C686,504 678,516 670,526
+             C662,514 654,498 648,480
+             C640,456 630,428 620,402
+             C612,380 606,360 604,346 Z"/>
+
+    <path id="faceSil"
+          d="M416,296
+             C374,296 342,314 332,352
+             C325,388 330,424 344,450
+             C362,480 388,500 418,499
+             C446,498 468,476 480,448
+             C498,418 506,382 498,348
+             C488,312 458,296 416,296 Z"/>
+    <clipPath id="clipFace"><use href="#faceSil"/></clipPath>
+
+    <linearGradient id="fadeG" x1="0" y1="640" x2="0" y2="768" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="0.72" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1"    stop-color="#000000"/>
     </linearGradient>
-    <mask id="bottomFade" maskUnits="userSpaceOnUse" x="0" y="0" width="800" height="800">
-      <rect width="800" height="800" fill="url(#fadeGrad)"/>
+    <mask id="fadeM">
+      <rect x="0" y="0" width="800" height="800" fill="url(#fadeG)"/>
     </mask>
-
-    <!-- ==================== SHARED SILHOUETTES ====================
-         hairMass fills the head behind the face and doubles as the clip for
-         every fringe lock, so lock geometry can never spill past the head. -->
-    <path id="hairMass"
-          d="M400,117
-             C428,118 453,125 473,137 C487,146 497,154 506,163
-             C526,178 548,192 566,206
-             C577,230 585,258 589,290 C592,320 592,354 588,386
-             C585,414 578,440 566,462 C550,486 524,504 496,516
-             L488,532 L440,550 L380,552 L330,542 L314,528
-             C288,514 266,494 250,472 C234,448 224,420 218,390
-             C212,356 210,322 216,286 C222,252 238,222 254,198
-             C266,177 283,158 302,144 C324,131 350,121 372,118 Z"/>
-    <path id="hairEdge" fill="none"
-          d="M314,528
-             C288,514 266,494 250,472 C234,448 224,420 218,390
-             C212,356 210,322 216,286 C222,252 238,222 254,198
-             C266,177 283,158 302,144 C324,131 350,121 372,118
-             C384,116 392,116 400,117
-             C428,118 453,125 473,137 C487,146 497,154 506,163
-             C526,178 548,192 566,206
-             C577,230 585,258 589,290 C592,320 592,354 588,386
-             C585,414 578,440 566,462 C550,486 524,504 496,516"/>
-    <clipPath id="clipHair"><use href="#hairMass"/></clipPath>
-
-    <!-- the two side falls; hair shading is confined to them -->
-    <path id="lockLeft"
-          d="M302,144 C280,178 262,222 252,272 C242,322 240,372 244,418
-             C248,456 258,490 272,520
-             C276,504 281,492 287,484 C293,506 301,524 311,538
-             C317,518 325,504 333,496 C339,516 347,532 356,544
-             C346,500 336,446 328,392 C318,330 311,266 307,212
-             C305,186 304,162 303,150 Z"/>
-    <path id="lockRight"
-          d="M506,163 C528,196 546,240 556,290 C566,340 568,390 564,432
-             C560,468 550,498 536,524
-             C530,508 524,498 518,490 C512,510 504,526 494,536
-             C488,516 480,504 472,496 C466,516 458,530 450,540
-             C460,498 470,446 478,392 C488,330 494,266 496,214
-             C497,188 497,170 496,160 Z"/>
-    <clipPath id="clipSides">
-      <use href="#lockLeft"/><use href="#lockRight"/>
-    </clipPath>
-
-    <path id="faceShape"
-          d="M330,298 C321,338 319,378 325,412 C331,444 348,466 370,479
-             C388,489 404,492 415,491 C432,489 450,479 465,463
-             C484,443 496,416 500,386 C504,350 502,318 496,294
-             C470,270 441,260 413,260 C378,260 348,272 330,298 Z"/>
-    <clipPath id="clipFace"><use href="#faceShape"/></clipPath>
-
-    <path id="eyeLShape"
-          d="M310,378 C315,362 328,350 346,348 C362,346 373,353 377,364
-             C380,373 379,382 376,388 C367,396 352,400 339,398
-             C325,395 314,388 310,378 Z"/>
-    <path id="eyeRShape"
-          d="M443,368 C448,353 463,343 481,341 C496,340 505,347 507,358
-             C508,365 506,372 502,376 C491,382 474,383 461,380
-             C450,377 444,373 443,368 Z"/>
-    <clipPath id="clipEyeL"><use href="#eyeLShape"/></clipPath>
-    <clipPath id="clipEyeR"><use href="#eyeRShape"/></clipPath>
-
-    <!-- Sailor collar: a broad navy band. The two lapel edges are straight
-         diagonals of different slope because the shoulders are turned. -->
-    <path id="collarShape"
-          d="M224,536 C258,514 300,502 344,497 L378,494
-             C377,522 382,552 396,582 C412,616 430,646 450,706
-             C468,648 480,614 486,580 C490,550 489,520 487,494
-             L520,498 C560,506 592,516 613,530
-             C606,566 592,602 566,638 C542,670 512,694 486,704
-             C470,710 458,712 450,712 C438,712 420,706 396,694
-             C358,674 322,642 296,608 C272,576 250,554 224,536 Z"/>
-    <clipPath id="clipCollar"><use href="#collarShape"/></clipPath>
-
-    <clipPath id="clipRibbon">
-      <path d="M470,190 L680,190 L790,470 L710,600 L520,600 L470,330 Z"/>
-    </clipPath>
   </defs>
 
-  <!-- ================================================================
-       1. PAPER
-       ================================================================ -->
-  <rect width="800" height="800" fill="#fcf1e0"/>
+  <!-- ==== paper ==== -->
+  <rect width="800" height="800" fill="#fbf1de"/>
 
-  <!-- ================================================================
-       2. BLUE BRUSH STROKES
-       Every bar is laid down twice: a wide halftone-screened pass supplies
-       the ragged dotted edge, a narrower solid pass supplies the core.
-       The bars run underneath the red disc, so only the parts outside the
-       disc stay visible, which is how the reference fan is built.
-       ================================================================ -->
-  <g id="strokes" fill="none" stroke-linecap="round">
-    <g id="strokes-right">
-      <g stroke="url(#dotBlue)">
-        <path d="M470,190 C512,164 556,132 600,98"   stroke-width="48"/>
-        <path d="M482,240 C526,212 580,174 636,142"  stroke-width="50"/>
-        <path d="M500,286 C544,262 602,236 665,214"  stroke-width="50"/>
-        <path d="M512,318 C558,300 616,278 682,258"  stroke-width="48"/>
-        <path d="M520,344 C574,332 648,312 740,292"  stroke-width="50"/>
-        <path d="M526,370 C584,364 658,354 752,344"  stroke-width="52"/>
-        <path d="M528,394 C588,396 666,400 766,404"  stroke-width="52"/>
-        <path d="M524,418 C582,426 656,442 760,460"  stroke-width="50"/>
-        <path d="M516,442 C572,456 640,478 740,506"  stroke-width="48"/>
-        <path d="M504,464 C554,486 616,510 700,538"  stroke-width="44"/>
-        <path d="M578,478 C606,504 634,528 662,550"  stroke-width="40"/>
-        <path d="M546,502 C568,526 590,546 614,566"  stroke-width="36"/>
+  <!-- ==== blue brush strokes ====
+       Each dab is stroked twice: a wide halftone pass supplies the dotted dry fringe,
+       a narrower solid pass supplies the wet core the brush laid down first. -->
+  <g mix-blend-mode="multiply">
+    <g id="blueStrokes" fill="none" stroke-linecap="round">
+      <!-- Each dab is stroked twice: a slightly wider halftone pass supplies the dotted
+           dry fringe, a solid pass supplies the wet core the brush laid down first. -->
+      <g stroke="url(#htBlue)" filter="url(#rough)">
+        <path d="M584,132 L616,148" stroke-width="54"/>
+        <path d="M610,204 L648,216" stroke-width="52"/>
+        <path d="M638,262 L664,252" stroke-width="48"/>
+        <path d="M648,318 L692,304" stroke-width="52"/>
+        <path d="M652,368 L734,352" stroke-width="58"/>
+        <path d="M656,412 L748,418" stroke-width="58"/>
+        <path d="M658,460 L740,468" stroke-width="58"/>
+        <path d="M646,510 L726,516" stroke-width="56"/>
+        <path d="M652,556 L716,564" stroke-width="52"/>
+        <path d="M656,594 L688,600" stroke-width="46"/>
+        <path d="M92,382 L108,386" stroke-width="42"/>
+        <path d="M90,426 L130,430" stroke-width="42"/>
+        <path d="M92,470 L144,474" stroke-width="44"/>
+        <path d="M72,514 L168,518" stroke-width="46"/>
+        <path d="M114,556 L196,560" stroke-width="44"/>
+        <path d="M150,596 L184,600" stroke-width="38"/>
       </g>
-      <g stroke="#4a80c0">
-        <path d="M470,190 C512,164 556,132 600,98"   stroke-width="34"/>
-        <path d="M482,240 C526,212 580,174 636,142"  stroke-width="36"/>
-        <path d="M500,286 C544,262 602,236 665,214"  stroke-width="36"/>
-        <path d="M512,318 C558,300 616,278 682,258"  stroke-width="34"/>
-        <path d="M520,344 C574,332 648,312 740,292"  stroke-width="36"/>
-        <path d="M526,370 C584,364 658,354 752,344"  stroke-width="38"/>
-        <path d="M528,394 C588,396 666,400 766,404"  stroke-width="38"/>
-        <path d="M524,418 C582,426 656,442 760,460"  stroke-width="36"/>
-        <path d="M516,442 C572,456 640,478 740,506"  stroke-width="34"/>
-        <path d="M504,464 C554,486 616,510 700,538"  stroke-width="30"/>
-        <path d="M578,478 C606,504 634,528 662,550"  stroke-width="28"/>
-        <path d="M546,502 C568,526 590,546 614,566"  stroke-width="24" opacity="0.9"/>
-      </g>
-      <g stroke="url(#dotBlueFaint)">
-        <path d="M694,560 C716,574 734,588 748,600"  stroke-width="42"/>
-        <path d="M634,584 C656,596 674,608 688,618"  stroke-width="30"/>
-        <path d="M702,212 C718,202 732,194 744,188"  stroke-width="24"/>
-        <path d="M606,140 C622,128 636,118 648,110"  stroke-width="22"/>
-        <path d="M780,354 C786,358 792,362 796,366"  stroke-width="24"/>
-      </g>
-    </g>
-
-    <g id="strokes-left">
-      <g stroke="url(#dotBlue)">
-        <path d="M226,410 C176,424 118,438 64,452"   stroke-width="46"/>
-        <path d="M230,470 C180,480 122,492 68,502"   stroke-width="40"/>
-        <path d="M236,518 C196,534 142,556 96,574"   stroke-width="40"/>
-        <path d="M246,558 C216,572 172,590 134,602"  stroke-width="36"/>
-      </g>
-      <g stroke="#4a80c0">
-        <path d="M226,410 C176,424 118,438 64,452"   stroke-width="34"/>
-        <path d="M230,470 C180,480 122,492 68,502"   stroke-width="30"/>
-        <path d="M236,518 C196,534 142,556 96,574"   stroke-width="30"/>
-        <path d="M246,558 C216,572 172,590 134,602"  stroke-width="26"/>
-      </g>
-      <g stroke="url(#dotBlueFaint)">
-        <path d="M158,372 C136,378 114,386 96,394"   stroke-width="46"/>
-        <path d="M146,404 C128,406 110,410 94,414"   stroke-width="22"/>
-        <path d="M118,612 C136,608 152,602 166,596"  stroke-width="20"/>
-        <path d="M54,478 C48,480 44,482 40,484"      stroke-width="22"/>
+      <g stroke="#4c84c4" filter="url(#roughSoft)" opacity="0.96">
+        <path d="M584,132 L616,148" stroke-width="44"/>
+        <path d="M610,204 L648,216" stroke-width="42"/>
+        <path d="M638,262 L664,252" stroke-width="38"/>
+        <path d="M648,318 L692,304" stroke-width="42"/>
+        <path d="M652,368 L734,352" stroke-width="48"/>
+        <path d="M656,412 L748,418" stroke-width="48"/>
+        <path d="M658,460 L740,468" stroke-width="48"/>
+        <path d="M646,510 L726,516" stroke-width="46"/>
+        <path d="M652,556 L716,564" stroke-width="42"/>
+        <path d="M656,594 L688,600" stroke-width="36"/>
+        <path d="M92,382 L108,386" stroke-width="32"/>
+        <path d="M90,426 L130,430" stroke-width="32"/>
+        <path d="M92,470 L144,474" stroke-width="34"/>
+        <path d="M72,514 L168,518" stroke-width="36"/>
+        <path d="M114,556 L196,560" stroke-width="34"/>
+        <path d="M150,596 L184,600" stroke-width="28"/>
       </g>
     </g>
   </g>
 
-  <!-- ================================================================
-       3. RED HALFTONE DISC
-       ================================================================ -->
-  <g id="disc">
-    <circle cx="394" cy="352" r="258" fill="none" stroke="url(#dotRedEdge)" stroke-width="12"/>
-    <circle cx="394" cy="352" r="255" fill="#f8836b"/>
-    <circle cx="394" cy="352" r="255" fill="url(#dotRed)"/>
+  <!-- ==== red halftone disc ==== -->
+  <g>
+    <circle cx="399" cy="350" r="252" fill="url(#htRed)" filter="url(#roughDisc)"/>
+    <circle cx="399" cy="350" r="245" fill="#e8644c" filter="url(#roughDisc)"/>
+    <circle cx="399" cy="350" r="241" fill="url(#htRedTex)" opacity="0.16"/>
   </g>
 
-  <!-- ================================================================
-       4. CHARACTER
-       ================================================================ -->
-  <g id="character" mask="url(#bottomFade)">
+  <!-- ==== character ==== -->
+  <g id="character">
 
-    <!-- ==== 4b. HAIR MASS ==== -->
-    <use href="#hairMass" fill="url(#hairGrad)"/>
+    <!-- ==== ribbon tails, hanging behind the shoulder ==== -->
+    <g id="tails">
+      <g transform="translate(4,2)" fill="none" stroke="#ef8570" stroke-width="5" opacity="0.9">
+        <use href="#tailA"/><use href="#tailB"/>
+      </g>
+      <use href="#tailA" fill="#133f7a" stroke="#08264f" stroke-width="2.4" stroke-linejoin="round"/>
+      <use href="#tailB" fill="#0f3872" stroke="#08264f" stroke-width="2.4" stroke-linejoin="round"/>
+      <g fill="url(#htNavy)" opacity="0.5">
+        <path d="M572,356 C574,392 578,434 588,472 C594,496 606,518 620,530
+                 C610,502 600,466 594,428 C588,392 582,370 576,352 Z"/>
+        <path d="M626,356 C638,378 652,406 664,436 C674,460 682,476 688,486
+                 C682,496 676,504 670,512 C662,496 652,472 642,446
+                 C632,418 624,392 618,370 Z"/>
+      </g>
+      <g stroke="#8fb3dd" stroke-width="2" fill="none" opacity="0.7">
+        <path d="M578,362 C578,398 582,438 592,476"/>
+        <path d="M632,372 C644,398 658,432 672,466"/>
+      </g>
+    </g>
 
-    <!-- ==== 4c. HEAD ==== -->
-    <g id="head">
-      <!-- neck and upper chest, laid down before the collar covers its flanks -->
-      <path d="M378,446 L376,506 C374,532 382,556 398,578
-               C414,602 432,614 448,614 C466,612 480,594 488,570
-               L488,506 L484,446 Z" fill="url(#skinGrad)"/>
-      <use href="#faceShape" fill="url(#skinGrad)"/>
+    <!-- ==== hair behind the head ==== -->
+    <use href="#hairSil" transform="translate(5,3)" fill="none" stroke="#ef8570"
+         stroke-width="5" opacity="0.85"/>
+    <use href="#hairSil" fill="url(#hairGrad)"/>
+    <g clip-path="url(#clipHair)">
+      <path d="M196,300 C190,376 200,442 230,494 C252,530 292,546 322,534
+               C302,506 286,462 280,410 C274,354 276,318 284,286 Z"
+            fill="#c3d1e6" opacity="0.5"/>
+      <path d="M576,272 C586,336 586,412 568,466 C554,506 526,524 504,514
+               C522,478 534,424 536,366 C538,318 534,288 526,266 Z"
+            fill="#c3d1e6" opacity="0.45"/>
+      <path d="M300,120 C258,152 224,206 210,272 C246,238 300,196 366,168
+               C336,140 316,126 300,120 Z"
+            fill="#f5f7fb" opacity="0.85"/>
+    </g>
 
+    <!-- ==== neck, chest, face ==== -->
+    <g id="skin">
+      <path d="M378,452 C377,492 372,520 362,540
+               C372,566 384,592 396,612
+               C416,624 448,624 468,608
+               C476,584 480,556 484,536
+               C472,516 468,486 468,452 Z"
+            fill="#f7d5bb"/>
+      <path d="M378,452 C377,486 372,510 364,528
+               C382,548 400,556 422,556 C444,556 462,546 478,528
+               C470,508 468,484 468,452 Z"
+            fill="#eec0a2"/>
+      <use href="#faceSil" fill="url(#skinGrad)"/>
       <g clip-path="url(#clipFace)">
-        <path d="M300,248 C340,300 372,322 412,326 C452,330 486,306 512,262
-                 L512,246 L300,246 Z" fill="#f6d0b5" opacity="0.4"/>
-        <path d="M318,338 C320,392 330,432 350,462 L322,472 L308,390 Z"
-              fill="#f4ccb0" opacity="0.55"/>
-        <path d="M498,334 C498,388 490,428 472,458 L502,470 L508,366 Z"
-              fill="#f4ccb0" opacity="0.55"/>
-        <ellipse cx="412" cy="400" rx="44" ry="13" fill="#f6b096" opacity="0.22"/>
-        <ellipse cx="344" cy="404" rx="21" ry="8"  fill="#f19f85" opacity="0.34"/>
-        <ellipse cx="480" cy="394" rx="21" ry="8"  fill="#f19f85" opacity="0.34"/>
+        <path d="M320,288 L510,288 C508,326 494,348 468,358
+                 C438,368 390,368 356,356 C330,346 320,324 320,288 Z"
+              fill="#f4d2b7" opacity="0.55"/>
+        <ellipse cx="352" cy="416" rx="24" ry="8" fill="#f3ac92" opacity="0.16"/>
+        <ellipse cx="476" cy="404" rx="24" ry="8" fill="#f3ac92" opacity="0.16"/>
+        <path d="M486,300 C500,336 502,382 492,420 C486,442 478,456 468,466
+                 L510,466 L510,296 Z" fill="#f7d7bd" opacity="0.55"/>
       </g>
-
-      <!-- brows, faintly showing beneath the fringe -->
-      <path d="M316,344 C330,335 350,333 366,338" fill="none"
-            stroke="#c08a6e" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
-      <path d="M446,332 C462,325 482,325 496,331" fill="none"
-            stroke="#c08a6e" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
-
-      <!-- jaw contour -->
-      <path d="M324,396 C328,436 344,463 370,479 C388,489 404,492 415,491
-               C432,489 452,478 468,459 C488,437 500,410 501,376"
-            fill="none" stroke="#3a3340" stroke-width="2.3" stroke-linecap="round"/>
-      <path d="M352,470 C374,486 400,492 418,491 C444,488 468,468 482,442"
-            fill="none" stroke="#e2725b" stroke-width="1.4" stroke-linecap="round"
-            opacity="0.4" transform="translate(2.5,2)"/>
-
-      <!-- chin shadow and neck -->
-      <path d="M384,462 C396,483 405,491 416,492 C429,490 442,482 454,462
-               L460,496 C440,512 398,510 380,494 Z" fill="#efc0a3" opacity="0.75"/>
-      <path d="M378,470 L376,508" fill="none" stroke="#3a3340" stroke-width="2.2"/>
-      <path d="M486,464 L488,508" fill="none" stroke="#3a3340" stroke-width="2.2"/>
-      <path d="M386,506 C400,528 414,542 426,548" fill="none"
-            stroke="#d8a68d" stroke-width="1.8" opacity="0.8"/>
-      <path d="M482,504 C472,526 460,540 448,546" fill="none"
-            stroke="#d8a68d" stroke-width="1.8" opacity="0.8"/>
-      <path d="M378,512 C382,548 400,576 424,588 L424,602 L382,568 Z"
-            fill="#efc0a3" opacity="0.5"/>
-      <path d="M432,552 C434,564 434,574 432,584" fill="none"
-            stroke="#d3a189" stroke-width="1.5" opacity="0.7"/>
-
-      <!-- ===================== VIEWER-LEFT EYE ===================== -->
-      <g id="eyeL">
-        <use href="#eyeLShape" fill="#fdfaf4"/>
-        <g clip-path="url(#clipEyeL)">
-          <circle cx="352" cy="378" r="19" fill="url(#irisGrad)"/>
-          <circle cx="352" cy="378" r="19" fill="url(#irisTop)"/>
-          <path d="M337,386 C345,393 360,393 368,385" fill="none"
-                stroke="#cfe4f4" stroke-width="3.6" opacity="0.8"/>
-          <ellipse cx="352" cy="377" rx="5" ry="7.5" fill="#08142c"/>
-          <circle cx="352" cy="378" r="19" fill="none" stroke="#0c2048" stroke-width="2.4"/>
-          <path d="M304,338 L384,338 L384,360 C358,350 330,352 304,362 Z"
-                fill="#22345c" opacity="0.3"/>
-        </g>
-        <!-- upper lash: heavy at the outer corner, tapering inward -->
-        <path d="M307,379 C309,362 322,347 345,344 C364,341 375,349 380,364
-                 L368,365 C364,354 356,350 345,352 C328,355 317,365 314,382 Z"
-              fill="#101a30"/>
-        <path d="M306,383 C300,367 304,350 315,339 L323,346
-                 C313,356 310,368 311,384 Z" fill="#101a30"/>
-        <g fill="#101a30">
-          <path d="M321,346 l-8,-9 l13,5 Z"/>
-          <path d="M336,340 l-3,-11 l11,9 Z"/>
-          <path d="M354,340 l2,-11 l8,11 Z"/>
-          <path d="M371,348 l8,-7 l2,11 Z"/>
-        </g>
-        <path d="M313,383 C319,393 328,398 341,399 C355,400 367,394 376,382"
-              fill="none" stroke="#4b4453" stroke-width="1.7" stroke-linecap="round"/>
-        <g fill="#4b4453" opacity="0.7">
-          <circle cx="321" cy="391" r="1.6"/>
-          <circle cx="329" cy="396" r="1.6"/>
-          <circle cx="338" cy="400" r="1.5"/>
-        </g>
-        <circle cx="347" cy="368" r="3.8" fill="#ffffff"/>
-        <circle cx="358" cy="371" r="2.3" fill="#ffffff"/>
-        <circle cx="344" cy="387" r="2" fill="#ffffff" opacity="0.75"/>
-      </g>
-
-      <!-- ===================== VIEWER-RIGHT EYE ===================== -->
-      <g id="eyeR">
-        <use href="#eyeRShape" fill="#fdfaf4"/>
-        <g clip-path="url(#clipEyeR)">
-          <circle cx="470" cy="362" r="18" fill="url(#irisGrad)"/>
-          <circle cx="470" cy="362" r="18" fill="url(#irisTop)"/>
-          <path d="M456,369 C463,376 477,376 484,368" fill="none"
-                stroke="#cfe4f4" stroke-width="3.4" opacity="0.8"/>
-          <ellipse cx="470" cy="361" rx="4.8" ry="7" fill="#08142c"/>
-          <circle cx="470" cy="362" r="18" fill="none" stroke="#0c2048" stroke-width="2.4"/>
-          <path d="M438,326 L514,326 L514,348 C490,338 462,340 438,350 Z"
-                fill="#22345c" opacity="0.3"/>
-        </g>
-        <path d="M441,368 C445,354 461,340 484,338 C501,337 511,345 512,359
-                 L500,359 C498,350 494,346 483,347 C465,349 452,359 447,371 Z"
-              fill="#101a30"/>
-        <path d="M440,371 C435,360 438,347 448,339 L454,346
-                 C447,353 444,361 446,372 Z" fill="#101a30"/>
-        <g fill="#101a30">
-          <path d="M459,339 l-7,-10 l13,6 Z"/>
-          <path d="M476,334 l0,-11 l10,9 Z"/>
-          <path d="M493,336 l5,-10 l6,11 Z"/>
-          <path d="M505,347 l9,-6 l-1,11 Z"/>
-        </g>
-        <path d="M445,372 C450,380 458,384 469,384 C484,384 498,375 505,361"
-              fill="none" stroke="#4b4453" stroke-width="1.7" stroke-linecap="round"/>
-        <g fill="#4b4453" opacity="0.7">
-          <circle cx="486" cy="378" r="1.6"/>
-          <circle cx="494" cy="373" r="1.6"/>
-          <circle cx="501" cy="366" r="1.5"/>
-        </g>
-        <circle cx="465" cy="352" r="3.6" fill="#ffffff"/>
-        <circle cx="477" cy="355" r="2.2" fill="#ffffff"/>
-        <circle cx="461" cy="370" r="1.9" fill="#ffffff" opacity="0.75"/>
-      </g>
-
-      <!-- nose and mouth -->
-      <path d="M404,410 C408,414 410,417 408,421" fill="none"
-            stroke="#b98a70" stroke-width="2" stroke-linecap="round"/>
-      <path d="M396,447 C410,452 426,450 440,441" fill="none"
-            stroke="#7a5148" stroke-width="2.3" stroke-linecap="round"/>
-      <path d="M396,447 C405,451 414,451 421,449" fill="none"
-            stroke="#43312f" stroke-width="2.6" stroke-linecap="round" opacity="0.65"/>
+      <path d="M333,392 C328,426 336,452 352,472
+               C370,491 394,500 419,499
+               C444,498 464,486 477,467
+               C491,446 500,420 499,392"
+            fill="none" stroke="#5a6376" stroke-width="1.9" stroke-linecap="round" opacity="0.8"/>
+      <path d="M379,454 C378,490 373,516 363,536" fill="none" stroke="#5a6376"
+            stroke-width="1.8" opacity="0.6"/>
+      <path d="M467,454 C467,488 470,512 480,532" fill="none" stroke="#5a6376"
+            stroke-width="1.8" opacity="0.6"/>
+      <path d="M398,570 C414,580 442,580 462,568" fill="none" stroke="#dfa98c"
+            stroke-width="2" opacity="0.7"/>
     </g>
 
-    <!-- ==== 4d. SAILOR UNIFORM ==== -->
-    <g id="uniform">
-      <path d="M344,497 C300,503 260,516 222,538
-               C198,552 184,578 178,614 C171,656 168,706 168,764
-               L632,764 C632,706 630,656 623,614 C617,578 601,550 613,530
-               C592,516 558,505 520,498 L450,710 Z"
-            fill="url(#clothGrad)" stroke="#3b3a44" stroke-width="2.2" stroke-linejoin="round"/>
-      <g fill="#eae4d6" opacity="0.65">
-        <path d="M186,606 C176,646 174,700 174,760 L206,760 C204,700 208,648 216,608 Z"/>
-        <path d="M600,606 C612,646 616,700 616,760 L588,760 C588,700 584,648 574,608 Z"/>
-      </g>
-      <g fill="none" stroke="#b9bcc8" stroke-width="1.5" opacity="0.5">
-        <path d="M246,552 C218,592 204,652 201,760"/>
-        <path d="M272,570 C250,610 238,664 237,760"/>
-        <path d="M202,580 C186,620 178,684 178,762"/>
-        <path d="M572,566 C596,606 608,660 610,760"/>
-        <path d="M598,584 C618,622 628,678 630,760"/>
-        <path d="M622,614 C634,652 638,708 638,762"/>
-      </g>
-      <path d="M222,540 C198,554 184,580 178,616" fill="none"
-            stroke="#5aa0dd" stroke-width="1.8" opacity="0.45" transform="translate(-3,1)"/>
-      <path d="M613,532 C619,556 623,584 625,616" fill="none"
-            stroke="#e2725b" stroke-width="1.8" opacity="0.4" transform="translate(3,1)"/>
+    <!-- ==== face features ==== -->
+    <g id="features">
+      <path d="M313,338 C325,332 344,332 357,338" fill="none" stroke="#aebbcd"
+            stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+      <path d="M457,327 C471,320 490,319 504,325" fill="none" stroke="#aebbcd"
+            stroke-width="3" stroke-linecap="round" opacity="0.8"/>
 
-      <!-- inner blouse panel showing inside the V -->
-      <path d="M392,572 C402,598 422,614 446,615 C468,612 482,594 490,568
-               L470,704 L430,704 Z" fill="#fbf6ea"/>
-      <path d="M392,572 C404,600 424,618 446,618 C468,616 484,596 492,570"
-            fill="none" stroke="#faf5e9" stroke-width="10"/>
-      <path d="M394,566 C406,594 424,610 446,610 C468,608 482,590 490,564"
-            fill="none" stroke="#3a3340" stroke-width="1.6" opacity="0.75"/>
-      <path d="M395,582 C407,608 426,624 446,624 C468,622 482,604 490,578"
-            fill="none" stroke="#12386e" stroke-width="3"/>
-      <path d="M397,594 C409,618 428,632 447,632 C468,630 482,612 490,588"
-            fill="none" stroke="#12386e" stroke-width="3"/>
-
-      <!-- navy sailor collar -->
-      <g id="collar">
-        <use href="#collarShape" fill="url(#navyGrad)"/>
-        <g clip-path="url(#clipCollar)">
-          <rect x="200" y="480" width="430" height="250" fill="url(#weaveNavy)" opacity="0.5"/>
-          <path d="M487,494 L613,530 C608,584 572,648 500,700 L450,712 Z"
-                fill="#134584" opacity="0.3"/>
-          <path d="M222,538 C260,516 300,503 344,497 L338,556 L252,572 Z"
-                fill="#03204a" opacity="0.2"/>
-          <!-- two white braid courses, running from each shoulder to the knot -->
-          <g fill="none" stroke="#f9f4e6" stroke-width="6.5" stroke-linecap="round">
-            <path d="M258,548 C284,572 312,600 344,632 C378,666 414,694 446,710"/>
-            <path d="M274,540 C300,566 330,596 366,632 C396,662 428,690 452,706"/>
-            <path d="M592,546 C578,584 552,620 516,654 C488,680 462,700 446,710"/>
-            <path d="M580,536 C566,574 540,610 504,644 C478,670 456,690 442,702"/>
-          </g>
-        </g>
-        <use href="#collarShape" fill="none" stroke="#1b2236" stroke-width="2.4"
-             stroke-linejoin="round"/>
-        <path d="M222,540 C260,518 300,505 344,499" fill="none" stroke="#5aa0dd"
-              stroke-width="1.8" opacity="0.5" transform="translate(-2,3)"/>
-        <path d="M613,532 C610,570 596,608 570,642" fill="none" stroke="#e2725b"
-              stroke-width="1.8" opacity="0.45" transform="translate(3,1)"/>
+      <g transform="translate(340,375) scale(0.94) translate(-340,-375)">
+      <clipPath id="clipEyeL">
+        <path d="M304,374 C311,364 323,358 340,359 C357,360 369,366 375,374
+                 C371,386 356,393 339,393 C321,393 309,385 304,374 Z"/>
+      </clipPath>
+      <path d="M304,374 C311,364 323,358 340,359 C357,360 369,366 375,374
+               C371,386 356,393 339,393 C321,393 309,385 304,374 Z"
+            fill="#f5f4f1"/>
+      <g clip-path="url(#clipEyeL)">
+        <circle cx="341" cy="375" r="18" fill="url(#iris)"/>
+        <ellipse cx="341" cy="376" rx="6" ry="9" fill="#08172c"/>
+        <path d="M324,383 C331,392 351,392 358,383 C355,394 328,394 324,383 Z"
+              fill="#84c2e8" opacity="0.9"/>
+        <rect x="302" y="352" width="78" height="14" fill="#16233d"/>
+      </g>
+      <circle cx="334" cy="368" r="5" fill="#ffffff"/>
+      <circle cx="350" cy="384" r="2.6" fill="#ffffff" opacity="0.85"/>
+      <path d="M301,373 C308,360 322,353 341,354 C358,355 370,361 378,370"
+            fill="none" stroke="#16233d" stroke-width="6" stroke-linecap="round"/>
+      <path d="M300,368 C297,373 297,380 300,386" fill="none" stroke="#16233d"
+            stroke-width="4.4" stroke-linecap="round"/>
+      <path d="M309,388 C319,394 336,395 350,391" fill="none" stroke="#8a6a6a"
+            stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
       </g>
 
-      <!-- neckerchief knot -->
-      <path d="M420,700 C438,694 462,694 478,700
-               C488,708 492,722 490,736 C488,752 480,762 468,764
-               L432,764 C420,762 412,752 410,736 C408,722 412,708 420,700 Z"
-            fill="url(#navyGrad)" stroke="#1b2236" stroke-width="2.4" stroke-linejoin="round"/>
-      <path d="M420,700 C438,694 462,694 478,700
-               C488,708 492,722 490,736 C488,752 480,762 468,764
-               L432,764 C420,762 412,752 410,736 C408,722 412,708 420,700 Z"
-            fill="url(#weaveNavy)" opacity="0.45"/>
-      <path d="M418,712 C438,722 464,722 482,712" fill="none"
-            stroke="#3f6ba6" stroke-width="2.2" opacity="0.6"/>
-      <path d="M414,740 C434,750 466,750 486,738" fill="none"
-            stroke="#05204a" stroke-width="2.4" opacity="0.5"/>
-      <path d="M410,724 C398,730 390,740 386,752" fill="none"
-            stroke="#1b2236" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M490,722 C502,728 512,738 518,750" fill="none"
-            stroke="#1b2236" stroke-width="2.2" stroke-linecap="round"/>
+      <g transform="translate(478,360) scale(0.94) translate(-478,-360)">
+      <clipPath id="clipEyeR">
+        <path d="M446,359 C453,348 466,341 482,341 C497,342 507,347 512,356
+                 C508,369 494,378 478,378 C462,378 450,370 446,359 Z"/>
+      </clipPath>
+      <path d="M446,359 C453,348 466,341 482,341 C497,342 507,347 512,356
+               C508,369 494,378 478,378 C462,378 450,370 446,359 Z"
+            fill="#f5f4f1"/>
+      <g clip-path="url(#clipEyeR)">
+        <circle cx="477" cy="361" r="18" fill="url(#iris)"/>
+        <ellipse cx="477" cy="362" rx="6" ry="9" fill="#08172c"/>
+        <path d="M460,369 C467,378 487,378 494,369 C491,380 464,380 460,369 Z"
+              fill="#84c2e8" opacity="0.9"/>
+        <rect x="444" y="336" width="76" height="12" fill="#16233d"/>
+      </g>
+      <circle cx="470" cy="354" r="5" fill="#ffffff"/>
+      <circle cx="486" cy="370" r="2.6" fill="#ffffff" opacity="0.85"/>
+      <path d="M443,357 C451,343 466,336 483,337 C498,338 508,343 515,352"
+            fill="none" stroke="#16233d" stroke-width="6" stroke-linecap="round"/>
+      <path d="M516,351 C519,355 520,361 518,367" fill="none" stroke="#16233d"
+            stroke-width="4.4" stroke-linecap="round"/>
+      <path d="M453,374 C463,380 480,381 494,376" fill="none" stroke="#8a6a6a"
+            stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
+      </g>
+
+      <path d="M403,395 C406,401 408,405 412,406" fill="none" stroke="#d79c7d"
+            stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M400,440 C409,449 424,449 437,438" fill="none" stroke="#a2634f"
+            stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M408,446 C415,450 424,450 430,446" fill="none" stroke="#e6a08e"
+            stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
     </g>
 
-    <!-- ==== 4e. HAIR IN FRONT (locks clipped to the head silhouette) ==== -->
-    <g id="hairFront" clip-path="url(#clipHair)">
-
-      <use href="#lockLeft"  fill="url(#lockGrad)" stroke="#8093b4" stroke-width="1.7"
-           stroke-linejoin="round"/>
-      <use href="#lockRight" fill="url(#lockGrad)" stroke="#8093b4" stroke-width="1.7"
-           stroke-linejoin="round"/>
-
-      <!-- screened blue-grey shading, confined to the two side falls -->
-      <g clip-path="url(#clipSides)" opacity="0.9">
-        <path d="M296,392 C302,438 314,478 334,512 L310,540 L288,512
-                 C274,480 268,438 268,398 Z" fill="url(#dotHair)"/>
-        <path d="M526,386 C522,432 510,472 490,506 L514,536 L534,506
-                 C548,474 556,432 556,392 Z" fill="url(#dotHair)"/>
-        <path d="M288,206 C276,248 270,296 274,338 C266,320 258,296 258,268
-                 C258,240 266,216 278,196 Z" fill="url(#dotHair)" opacity="0.6"/>
-        <path d="M512,198 C526,240 532,290 528,334 C538,314 546,290 546,262
-                 C546,234 536,212 524,192 Z" fill="url(#dotHair)" opacity="0.6"/>
-        <path d="M318,300 C310,344 308,388 314,428 C304,404 298,372 300,338
-                 C301,320 308,306 318,300 Z" fill="url(#dotHair)" opacity="0.5"/>
-        <path d="M494,292 C502,338 504,382 498,424 C508,400 514,368 512,334
-                 C511,314 504,298 494,292 Z" fill="url(#dotHair)" opacity="0.5"/>
+    <!-- ==== uniform ==== -->
+    <g id="uniform" mask="url(#fadeM)">
+      <path d="M222,524 C300,505 350,500 396,499
+               C400,530 400,560 404,586
+               C412,606 430,616 448,616 C466,616 482,606 490,588
+               C494,556 500,528 506,504
+               C548,512 580,524 606,542
+               C638,565 652,612 656,662 L660,772 L174,772
+               C172,706 174,642 182,598 C189,556 200,534 222,524 Z"
+            fill="url(#shirtGrad)" stroke="#7c808b" stroke-width="1.7" stroke-linejoin="round"/>
+      <g fill="none" stroke="#9298a6" stroke-width="1.8" opacity="0.6">
+        <path d="M226,527 C238,570 244,640 244,726"/>
+        <path d="M602,545 C616,588 622,652 620,730"/>
+      </g>
+      <g fill="none" stroke="#ccd2e2" stroke-width="7" opacity="0.45">
+        <path d="M204,558 C198,618 198,684 202,744"/>
+        <path d="M630,592 C638,648 640,700 638,748"/>
       </g>
 
-      <!-- internal lock divisions in the side falls -->
-      <g fill="none" stroke="#7f92b3" stroke-width="1.5" stroke-linecap="round"
-         clip-path="url(#clipSides)" opacity="0.9">
-        <path d="M286,190 C266,240 256,300 258,360 C260,412 270,458 288,498"/>
-        <path d="M268,214 C250,262 242,318 244,374 C246,424 254,468 270,506"/>
-        <path d="M310,214 C302,268 300,326 304,382 C307,424 314,462 326,494"/>
-        <path d="M520,190 C540,240 550,300 548,360 C546,412 536,458 518,498"/>
-        <path d="M538,216 C556,264 564,320 562,376 C560,424 552,466 538,502"/>
-        <path d="M498,214 C506,268 508,326 504,382 C501,424 494,462 482,494"/>
+      <g transform="translate(4,2)" fill="none" stroke="#ef8570" stroke-width="5" opacity="0.8">
+        <use href="#collarLeft"/><use href="#collarRight"/>
+      </g>
+      <use href="#collarLeft"  fill="url(#navyGrad)" stroke="#08264f" stroke-width="2.3" stroke-linejoin="round"/>
+      <use href="#collarRight" fill="url(#navyGrad)" stroke="#08264f" stroke-width="2.3" stroke-linejoin="round"/>
+      <g clip-path="url(#clipCollarL)" fill="url(#htNavy)" opacity="0.5">
+        <rect x="220" y="500" width="240" height="220"/>
+      </g>
+      <g clip-path="url(#clipCollarR)" fill="url(#htNavy)" opacity="0.5">
+        <rect x="440" y="500" width="180" height="230"/>
+      </g>
+      <g fill="none" stroke="#f8f3e4" stroke-width="5.5" stroke-linecap="round">
+        <path d="M259,535 Q288,568 310,595 Q336,626 375,655 Q396,668 412,678"/>
+        <path d="M274,538 Q303,571 325,598 Q346,628 392,660 Q410,672 426,682"/>
+        <path d="M577,548 Q560,592 538,615 Q512,642 478,676"/>
+        <path d="M589,549 Q574,592 552,615 Q528,644 492,672"/>
       </g>
 
-      <!-- fringe: chunky locks sweeping out of the crown parting. The tips
-           stop above the eyes so the forehead stays open, and two thin
-           strands break the line by falling across the eyes. -->
-      <g stroke="#7f92b3" stroke-width="1.6" stroke-linejoin="round">
-        <path d="M394,124 C332,146 292,192 272,252 C258,296 252,338 254,376
-                 C262,352 272,326 284,300 C276,336 274,364 278,388
-                 C286,352 298,318 314,286 C300,240 308,190 340,152
-                 C356,134 374,126 394,124 Z" fill="url(#lockGrad)"/>
-        <path d="M397,126 C350,152 318,196 304,250 C294,292 292,326 296,354
-                 C304,326 314,300 326,276 C320,308 318,332 322,352
-                 C330,318 342,286 356,258 C346,214 356,172 384,140
-                 C389,134 393,129 397,126 Z" fill="url(#lockGrad)"/>
-        <path d="M399,128 C364,168 344,214 336,262 C331,292 331,314 334,332
-                 C342,306 352,282 362,260 C358,286 357,306 360,320
-                 C368,290 378,262 388,238 C382,202 386,168 399,140 Z"
-              fill="url(#lockGrad)"/>
-        <path d="M403,130 C400,182 402,230 408,274 C411,298 415,314 419,326
-                 C420,300 419,274 416,248 C424,272 430,290 435,302
-                 C433,268 428,232 420,196 C414,168 408,146 403,130 Z"
-              fill="url(#lockGrad)"/>
-        <path d="M407,130 C424,176 442,220 458,260 C468,286 476,302 482,312
-                 C478,286 471,260 462,234 C474,256 484,272 492,282
-                 C482,248 466,212 444,178 C428,154 415,138 407,130 Z"
-              fill="url(#lockGrad)"/>
-        <path d="M412,128 C440,150 466,182 488,218 C504,244 516,266 522,282
-                 C520,254 512,226 498,198 C514,220 526,238 534,252
-                 C526,214 504,176 472,146 C452,130 430,124 412,128 Z"
-              fill="url(#lockGrad)"/>
-      </g>
-      <!-- two thin strands falling across the eyes -->
-      <g fill="url(#lockGrad)" stroke="#7f92b3" stroke-width="1.2">
-        <path d="M414,148 C424,204 430,258 434,308 C436,340 436,368 434,392
-                 C430,364 425,326 421,286 C416,236 412,190 411,152 Z"/>
-        <path d="M468,182 C478,224 486,266 491,306 C495,334 496,358 495,380
-                 C490,354 484,322 478,284 C471,240 465,204 463,184 Z"/>
-        <path d="M338,192 C326,236 318,282 314,326 C311,356 311,382 313,402
-                 C316,376 320,344 326,308 C334,262 341,222 344,196 Z"/>
-      </g>
-
-      <!-- crown parting and cowlick -->
-      <path d="M400,120 C390,138 382,158 376,180 C386,166 394,157 400,150
-               C407,157 416,166 426,180 C420,158 411,138 400,120 Z"
-            fill="#e9eef5" stroke="#3f5c93" stroke-width="1.7" stroke-linejoin="round"/>
-      <g fill="none" stroke="#3f5c93" stroke-linecap="round" opacity="0.8">
-        <path d="M392,130 C368,124 342,128 318,140" stroke-width="1.9"/>
-        <path d="M410,130 C436,124 460,128 480,142" stroke-width="1.9"/>
-      </g>
-
-      <!-- fine strand work -->
-      <g fill="none" stroke="#9db0cc" stroke-width="1.3" stroke-linecap="round" opacity="0.65">
-        <path d="M392,134 C344,160 312,204 296,256"/>
-        <path d="M395,136 C352,168 324,212 310,264"/>
-        <path d="M398,138 C364,176 342,222 332,272"/>
-        <path d="M400,139 C374,184 360,232 354,280"/>
-        <path d="M403,139 C390,188 384,236 382,284"/>
-        <path d="M406,139 C412,188 418,234 422,280"/>
-        <path d="M409,138 C426,182 442,226 454,270"/>
-        <path d="M412,136 C438,174 460,214 478,256"/>
-        <path d="M416,133 C448,160 474,196 496,238"/>
-        <path d="M282,268 C272,310 270,354 278,396"/>
-        <path d="M300,280 C290,320 288,362 296,402"/>
-        <path d="M320,294 C312,332 310,370 316,404"/>
-        <path d="M346,302 C340,336 338,370 342,396"/>
-        <path d="M436,298 C440,328 440,354 436,376"/>
-        <path d="M462,290 C468,318 470,344 468,368"/>
-        <path d="M490,276 C498,304 502,332 500,356"/>
-        <path d="M514,260 C524,288 530,316 528,344"/>
-        <path d="M264,220 C250,268 246,320 252,374"/>
-        <path d="M280,212 C266,260 262,312 268,366"/>
-        <path d="M528,210 C542,254 548,306 544,360"/>
-        <path d="M544,218 C556,260 560,308 556,358"/>
-        <path d="M252,390 C260,434 274,470 294,500"/>
-        <path d="M270,398 C280,438 294,470 312,498"/>
-        <path d="M554,380 C548,422 534,456 516,488"/>
-        <path d="M536,386 C530,424 518,456 502,484"/>
-        <path d="M304,404 C314,442 330,472 350,498"/>
-        <path d="M504,400 C496,438 482,468 464,494"/>
-      </g>
-      <g fill="none" stroke="#5c7aa8" stroke-width="1" stroke-linecap="round" opacity="0.4">
-        <path d="M338,154 C312,186 296,226 288,270"/>
-        <path d="M366,140 C344,174 328,214 322,258"/>
-        <path d="M440,142 C464,174 482,212 494,256"/>
-        <path d="M466,156 C492,188 510,224 522,264"/>
-        <path d="M290,320 C286,360 290,396 300,430"/>
-        <path d="M530,314 C534,354 530,390 520,424"/>
-      </g>
+      <path d="M419,697 C412,712 410,728 416,742
+               C428,750 449,752 465,747
+               C478,743 488,733 486,720
+               C484,707 476,699 465,696 Z"
+            fill="#12386f" stroke="#08264f" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M432,700 C428,716 428,732 434,745" fill="none" stroke="#2f5c96"
+            stroke-width="2" opacity="0.8"/>
+      <path d="M461,698 C467,712 469,728 463,743" fill="none" stroke="#2f5c96"
+            stroke-width="2" opacity="0.8"/>
     </g>
 
-    <!-- crisp outer contour of the hair, restated last -->
-    <use href="#hairEdge" stroke="#22304e" stroke-width="2.6" stroke-linejoin="round"
-         stroke-linecap="round"/>
-    <g fill="none" stroke="#22304e" stroke-linecap="round">
-      <path d="M400,119 C398,106 394,96 388,88" stroke-width="2.2"/>
-      <path d="M407,120 C416,106 428,96 440,90" stroke-width="2"/>
+    <!-- ==== hair in front ====
+         The bob is one near-white mass. Separation between locks comes from soft
+         blue-grey lens shapes plus thin tapered division curves, which is what keeps
+         the hair from reading as a striped helmet. -->
+    <g id="frontHair">
+      <g transform="translate(5,3)" fill="none" stroke="#ef8570" stroke-width="5" opacity="0.85">
+        <use href="#lockL"/><use href="#lockR"/>
+      </g>
+      <use href="#lockL" fill="url(#lockGrad)" stroke="#6d86ad" stroke-width="1.6" stroke-linejoin="round"/>
+      <use href="#lockR" fill="url(#lockGrad)" stroke="#6d86ad" stroke-width="1.6" stroke-linejoin="round"/>
+
+      <!-- broad side locks -->
+      <g fill="url(#lockGrad)" stroke="#7d93b7" stroke-width="1.4" stroke-linejoin="round">
+        <path d="M312,152 C268,196 232,258 214,326 C204,368 200,408 206,444
+                 C216,408 228,362 246,314 C270,250 300,190 326,164 Z"/>
+        <path d="M366,150 C330,206 300,282 286,358 C276,414 276,466 286,512
+                 C290,470 298,414 312,354 C330,280 358,208 380,168 Z"/>
+        <path d="M488,154 C526,200 554,264 566,330 C574,374 574,414 566,450
+                 C558,414 548,368 534,320 C514,256 490,200 474,168 Z"/>
+        <path d="M436,148 C470,206 496,282 510,358 C520,414 518,464 508,508
+                 C504,466 496,412 484,354 C468,280 442,208 426,168 Z"/>
+      </g>
+      <!-- pointed tips that break the smooth bottom edge of the bob -->
+      <g fill="url(#lockGrad)" stroke="#7d93b7" stroke-width="1.4" stroke-linejoin="round">
+        <path d="M212,398 C206,440 210,482 226,514 C240,540 260,552 272,546
+                 C260,526 248,498 240,464 C232,434 228,414 226,396 Z"/>
+        <path d="M264,432 C262,470 270,504 290,530 C304,548 320,554 330,546
+                 C316,526 306,502 300,472 C294,448 292,432 292,418 Z"/>
+        <path d="M566,388 C572,430 568,470 552,502 C540,526 522,538 510,532
+                 C522,512 532,486 540,454 C548,424 552,402 554,386 Z"/>
+        <path d="M516,424 C518,460 510,494 492,518 C478,536 462,542 452,534
+                 C466,514 476,492 482,464 C488,442 490,426 490,412 Z"/>
+      </g>
+
+      <use href="#fringe" fill="url(#hairGrad)" stroke="#6d86ad" stroke-width="1.6" stroke-linejoin="round"/>
+
+      <!-- soft separation between locks -->
+      <clipPath id="clipFringe"><use href="#fringe"/></clipPath>
+      <g clip-path="url(#clipFringe)">
+        <path d="M196,240 C206,280 228,310 258,326 C300,346 360,354 420,346
+                 C470,340 520,320 554,292 C568,280 576,266 580,248
+                 L580,400 L196,400 Z"
+              fill="#c2d2e8" opacity="0.45"/>
+      </g>
+      <g fill="#a9bedd" opacity="0.4">
+        <path d="M398,124 C376,190 346,268 322,338 C346,276 376,198 412,126 Z"/>
+        <path d="M420,126 C430,192 446,266 466,330 C444,270 428,196 410,128 Z"/>
+        <path d="M456,144 C476,202 504,262 532,308 C504,268 478,210 448,150 Z"/>
+        <path d="M378,130 C354,196 324,268 296,332 C318,274 348,200 372,134 Z"/>
+        <path d="M330,154 C302,208 272,268 248,318 C268,270 298,212 324,160 Z"/>
+        <path d="M226,322 C216,370 214,420 220,464 C226,422 230,372 238,328 Z"/>
+        <path d="M562,308 C572,356 574,406 566,450 C560,410 556,360 550,314 Z"/>
+        <path d="M300,342 C292,390 292,438 300,480 C304,440 306,392 310,348 Z"/>
+        <path d="M492,324 C500,372 500,420 492,460 C488,422 486,374 482,330 Z"/>
+      </g>
+      <g fill="#b9cae4" opacity="0.35">
+        <path d="M330,144 C370,122 434,120 476,142 C440,132 368,132 330,144 Z"/>
+        <path d="M250,214 C278,172 304,150 328,140 C296,168 268,198 250,214 Z"/>
+        <path d="M554,216 C530,174 508,152 484,142 C512,168 538,198 554,216 Z"/>
+        <path d="M216,300 C206,352 204,406 212,454 C220,420 222,372 226,330 Z"/>
+        <path d="M562,296 C572,348 574,402 566,450 C558,416 556,368 552,326 Z"/>
+      </g>
+
+      <!-- division curves; short, tapered, following the sweep out of the parting -->
+      <g fill="none" stroke="#7d93b7" stroke-width="1.5" stroke-linecap="round" opacity="0.75">
+        <path d="M398,124 C376,190 346,268 322,338"/>
+        <path d="M410,124 C406,192 402,268 400,336"/>
+        <path d="M420,126 C430,192 446,266 466,330"/>
+        <path d="M436,132 C452,196 476,264 502,320"/>
+        <path d="M456,144 C476,202 504,262 532,308"/>
+        <path d="M478,158 C500,208 528,258 554,296"/>
+        <path d="M378,130 C354,196 324,268 296,332"/>
+        <path d="M356,140 C330,200 300,268 274,326"/>
+        <path d="M330,154 C302,208 272,268 248,318"/>
+        <path d="M304,176 C278,222 252,272 232,316"/>
+        <path d="M226,322 C216,370 214,420 220,464"/>
+        <path d="M256,320 C244,370 240,422 248,470"/>
+        <path d="M562,308 C572,356 574,406 566,450"/>
+        <path d="M534,300 C546,350 550,402 544,448"/>
+        <path d="M300,342 C292,390 292,438 300,480"/>
+        <path d="M492,324 C500,372 500,420 492,460"/>
+      </g>
+      <g fill="none" stroke="#b5c6de" stroke-width="1" stroke-linecap="round" opacity="0.8">
+        <path d="M404,126 C390,190 368,266 344,332"/>
+        <path d="M428,130 C442,194 462,264 486,322"/>
+        <path d="M368,136 C344,198 316,266 290,328"/>
+        <path d="M468,152 C490,204 516,258 542,300"/>
+        <path d="M318,164 C292,212 264,266 242,314"/>
+        <path d="M240,336 C230,384 228,432 234,472"/>
+        <path d="M548,324 C558,372 558,420 550,458"/>
+      </g>
+
+      <!-- two long strands crossing the face -->
+      <g fill="url(#lockGrad)" stroke="#7d93b7" stroke-width="1.3" stroke-linejoin="round">
+        <path d="M416,134 C426,192 434,254 436,312 C437,348 434,378 429,402
+                 C427,374 423,338 418,298 C413,246 408,182 406,136 Z"/>
+        <path d="M464,158 C478,206 490,254 496,300 C500,336 500,368 496,392
+                 C492,364 484,324 475,282 C466,238 458,196 454,164 Z"/>
+      </g>
+
+      <!-- stray wisps and the crown cowlick -->
+      <g fill="none" stroke="#a8b9d4" stroke-width="2" stroke-linecap="round" opacity="0.8">
+        <path d="M206,330 C196,354 190,380 190,406"/>
+        <path d="M576,312 C586,336 590,364 588,390"/>
+        <path d="M214,456 C206,474 202,494 202,512"/>
+        <path d="M564,446 C570,466 572,488 570,506"/>
+        <path d="M282,520 C288,536 296,548 306,554"/>
+        <path d="M508,510 C502,528 494,540 484,548"/>
+      </g>
+      <path d="M396,132 C390,112 386,100 378,92 C388,96 396,106 401,120
+               C404,106 410,98 419,94 C412,104 407,116 406,132 Z"
+            fill="#f9f8f5" stroke="#5c78a3" stroke-width="1.5" stroke-linejoin="round"/>
     </g>
 
-    <!-- ==== 4g. CAT EARS (in front of the hair; the furred bases lap over it) ==== -->
+    <!-- ==== cat ears ==== -->
     <g id="ears">
-      <!-- viewer-left ear: a thin white rim around a large pink interior -->
-      <path d="M209,146 L296,173 C282,189 267,203 253,217 C245,225 239,233 235,241
-               C227,212 218,180 211,152 Z"
-            fill="#faf7f1" stroke="#22304e" stroke-width="2.8" stroke-linejoin="round"/>
-      <path d="M228,164 L292,178 C283,192 272,204 261,216 C250,202 237,184 228,164 Z"
-            fill="#f0bda7"/>
-      <path d="M238,180 L288,192 C281,201 273,209 265,217 C255,206 246,193 238,180 Z"
-            fill="#e4a48b" opacity="0.6"/>
-      <!-- fur tuft running along the base of the pink -->
-      <path d="M236,182 l5,-4 l3,7 l6,-4 l3,7 l6,-4 l3,7 l6,-4 l3,7 l6,-3 l3,6 l7,-3
-               l-7,13 l-6,-2 l-4,5 l-6,-3 l-4,5 l-6,-3 l-4,4 l-6,-4 Z"
-            fill="#f9f6f0" stroke="#93a8c8" stroke-width="0.9" stroke-linejoin="round"
-            opacity="0.95"/>
-      <path d="M228,164 L293,178" fill="none" stroke="#22304e" stroke-width="1.6"/>
-      <path d="M211,152 C218,181 225,211 232,240" fill="none"
-            stroke="#3f5c93" stroke-width="2.2" opacity="0.75"/>
-      <path d="M210,147 L294,175" fill="none"
-            stroke="#6b93cb" stroke-width="2" opacity="0.5" transform="translate(-2,3)"/>
+      <path d="M193,132 C199,176 211,220 229,253
+               C239,268 251,275 264,273
+               C287,268 307,250 321,217
+               C293,193 257,164 225,145 C212,137 199,132 193,132 Z"
+            fill="#fbf8f2" stroke="#31507f" stroke-width="2.6" stroke-linejoin="round"/>
+      <path d="M216,177 C223,208 233,236 245,257
+               C254,267 263,268 272,262
+               C285,251 295,238 302,225
+               C280,206 252,186 229,171 Z"
+            fill="#f4c5be"/>
+      <path d="M220,186 C227,219 238,244 250,261 C259,268 267,267 274,261
+               C259,241 241,213 229,183 Z" fill="#e9a79f" opacity="0.7"/>
+      <g stroke="#c8d3e4" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.9">
+        <path d="M229,176 C237,200 246,222 256,239"/>
+        <path d="M242,172 C249,196 258,218 267,233"/>
+        <path d="M257,182 C264,201 271,216 279,228"/>
+        <path d="M272,192 C278,206 284,217 291,225"/>
+      </g>
+      <path d="M201,142 C207,177 218,212 234,244" fill="none" stroke="#a9bcd8"
+            stroke-width="2.2" opacity="0.8"/>
 
-      <!-- viewer-right ear -->
-      <path d="M568,117 L500,152 C516,172 534,191 550,206 C557,212 563,215 566,213
-               C569,181 570,148 568,117 Z"
-            fill="#faf7f1" stroke="#22304e" stroke-width="2.8" stroke-linejoin="round"/>
-      <path d="M556,140 L564,206 C554,201 543,193 532,183 C524,176 519,171 516,167
-               C529,158 543,149 556,140 Z" fill="#f0bda7"/>
-      <path d="M551,160 L558,201 C550,196 542,190 535,183 C530,178 527,175 525,172
-               C534,168 543,164 551,160 Z" fill="#e4a48b" opacity="0.6"/>
-      <path d="M518,168 l6,3 l1,-7 l6,4 l1,-7 l6,4 l2,-7 l6,4 l1,-6 l5,4
-               l1,14 l-6,1 l-1,6 l-6,-2 l-2,5 l-6,-3 l-2,5 Z"
-            fill="#f9f6f0" stroke="#93a8c8" stroke-width="0.9" stroke-linejoin="round"
-            opacity="0.95"/>
-      <path d="M556,140 C543,150 529,159 516,168" fill="none"
-            stroke="#22304e" stroke-width="1.6"/>
-      <path d="M567,122 C569,152 569,182 566,210" fill="none"
-            stroke="#3f5c93" stroke-width="2.2" opacity="0.75"/>
-      <path d="M569,118 L501,154" fill="none"
-            stroke="#6b93cb" stroke-width="2" opacity="0.5" transform="translate(-2,3)"/>
+      <path d="M574,124 C568,168 556,211 540,244
+               C536,258 524,266 511,263
+               C493,256 480,235 476,206
+               C500,183 535,153 562,132 C567,128 572,124 574,124 Z"
+            fill="#fbf8f2" stroke="#31507f" stroke-width="2.6" stroke-linejoin="round"/>
+      <path d="M561,171 C554,203 545,232 533,253
+               C524,264 515,265 506,259
+               C494,248 486,235 483,222
+               C503,203 533,179 552,163 Z"
+            fill="#f4c5be"/>
+      <path d="M558,180 C552,213 541,239 530,256 C522,263 514,262 508,256
+               C520,237 536,209 548,178 Z" fill="#e9a79f" opacity="0.7"/>
+      <g stroke="#c8d3e4" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.9">
+        <path d="M551,168 C545,192 536,214 526,231"/>
+        <path d="M538,166 C532,190 523,210 514,225"/>
+        <path d="M523,175 C518,195 511,210 505,222"/>
+        <path d="M509,187 C505,201 500,212 495,220"/>
+      </g>
+      <path d="M567,132 C561,168 550,205 536,239" fill="none" stroke="#a9bcd8"
+            stroke-width="2.2" opacity="0.8"/>
     </g>
 
-    <!-- loose strands breaking the silhouette -->
-    <g fill="url(#lockGrad)" stroke="#8093b4" stroke-width="1.3" stroke-linejoin="round"
-       opacity="0.95">
-      <path d="M240,250 C231,282 227,314 229,344 C230,362 233,376 237,386
-               C235,364 234,340 236,314 C238,286 241,264 245,250 Z"/>
-      <path d="M566,262 C575,292 579,322 577,350 C576,368 573,380 569,390
-               C571,370 572,346 570,320 C568,292 565,272 561,258 Z"/>
-    </g>
-
-    <!-- ==== 4f. RIBBON, BOW AND LILY ==== -->
-    <g id="ribbon">
-      <!-- inner tail: a wide band that slides right and ends in a notch -->
-      <path d="M566,312 C578,352 592,394 608,436 C620,470 634,506 648,540
-               L640,572 L632,548 L624,566
-               C610,532 598,496 586,458 C572,412 556,364 546,318 Z"
-            fill="url(#bowGrad)" stroke="#1b2236" stroke-width="2.2" stroke-linejoin="round"/>
-      <!-- outer tail: swells to its widest point, then the notched cut -->
-      <path d="M610,304 C630,336 654,372 676,406 C692,432 702,452 705,466
-               L688,496 L678,530
-               C675,504 670,478 662,452 C652,420 636,388 618,358
-               C602,332 592,314 588,306 Z"
-            fill="url(#bowGrad)" stroke="#1b2236" stroke-width="2.2" stroke-linejoin="round"/>
-      <g clip-path="url(#clipRibbon)" opacity="0.3">
-        <rect x="470" y="190" width="330" height="410" fill="url(#weaveNavy)"/>
-      </g>
-      <g fill="none" stroke="#2f5f9e" stroke-width="1.8" opacity="0.45">
-        <path d="M560,340 C572,378 586,422 602,462"/>
-        <path d="M608,344 C626,374 648,408 668,442"/>
-      </g>
-      <g opacity="0.4">
-        <path d="M544,318 C554,350 564,384 574,414" fill="none"
-              stroke="#5aa0dd" stroke-width="1.7" transform="translate(-3,1)"/>
-        <path d="M648,574 C632,528 612,476 590,430" fill="none"
-              stroke="#e2725b" stroke-width="1.7" transform="translate(3,2)"/>
-        <path d="M703,468 C689,446 669,416 649,388" fill="none"
-              stroke="#e2725b" stroke-width="1.7" transform="translate(3,2)"/>
+    <!-- ==== bow and lily ==== -->
+    <g id="bow">
+      <path d="M524,308 C546,332 578,346 606,344 C622,342 630,334 632,322
+               C610,330 572,328 544,308 C534,301 528,301 524,308 Z"
+            fill="#123c78" stroke="#08264f" stroke-width="2.3" stroke-linejoin="round"/>
+      <path d="M544,206 L558,197 L571,207 L574,228 L563,247 L547,245 L538,227 Z"
+            fill="#12386f" stroke="#08264f" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M566,238 L586,206 L614,196 L637,209 L646,236
+               L641,270 L626,302 L606,325 L586,332 L571,318 L563,288 Z"
+            fill="#12386f" stroke="#08264f" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M594,212 L618,206 L634,220 L637,244 L630,276 L616,304
+               L600,320 L586,314 L582,286 L586,246 Z"
+            fill="url(#htNavy)" opacity="0.45"/>
+      <path d="M552,238 C568,224 590,222 604,234
+               C616,246 614,266 602,276
+               C588,287 566,284 556,270 C550,260 548,248 552,238 Z"
+            fill="#0f3872" stroke="#08264f" stroke-width="2.3" stroke-linejoin="round"/>
+      <g fill="none" stroke="#3b6aa2" stroke-width="1.9" opacity="0.8">
+        <path d="M596,208 C588,242 586,284 592,322"/>
+        <path d="M620,204 C628,236 628,276 618,306"/>
+        <path d="M562,244 C574,238 590,240 600,248"/>
+        <path d="M540,312 C560,328 580,338 600,338"/>
       </g>
 
-      <!-- bow: one silhouette with the pointed upper corner and the notch
-           between the two right-hand loops, plus internal folds -->
-      <path d="M550,212 C562,202 580,197 596,201 C606,204 612,210 614,218
-               C619,232 620,248 615,262 C611,272 606,278 602,281
-               C612,285 624,293 634,304 C644,316 646,330 638,340
-               C628,349 610,348 594,340 C582,334 572,325 566,315
-               C558,328 546,338 532,341 C514,344 496,338 488,325
-               C480,311 484,294 498,284 C510,275 526,272 540,275
-               C536,262 536,246 540,230 C543,221 546,215 550,212 Z"
-            fill="url(#bowGrad)" stroke="#1b2236" stroke-width="2.4" stroke-linejoin="round"/>
-      <g clip-path="url(#clipRibbon)" opacity="0.28">
-        <rect x="470" y="190" width="200" height="170" fill="url(#weaveNavy)"/>
+      <!-- lily: six pointed petals around a speckled throat -->
+      <g fill="url(#petalGrad)" stroke="#cbbaaa" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M552,248 C540,232 528,214 518,198
+                 C511,209 509,223 513,237 C517,251 528,259 540,258 Z"/>
+        <path d="M556,246 C554,226 556,208 562,192
+                 C573,201 581,213 583,227 C585,241 578,251 566,254 Z"/>
+        <path d="M562,250 C578,236 592,224 604,216
+                 C609,229 607,243 599,255 C591,267 578,271 566,264 Z"/>
+        <path d="M564,256 C584,254 600,256 614,262
+                 C608,275 596,283 582,285 C568,287 559,279 560,266 Z"/>
+        <path d="M558,260 C562,278 564,294 566,308
+                 C553,306 542,298 536,286 C530,274 534,262 546,258 Z"/>
+        <path d="M550,254 C532,258 516,264 504,272
+                 C511,283 523,289 537,287 C551,285 557,275 554,262 Z"/>
       </g>
-      <g fill="none" stroke="#12305c" stroke-width="2.2" stroke-linejoin="round">
-        <path d="M602,281 C588,278 574,272 564,264"/>
-        <path d="M566,315 C560,304 556,292 556,282"/>
-        <path d="M540,275 C548,278 554,280 558,282"/>
+      <g fill="none" stroke="#e6d6c7" stroke-width="1.4" opacity="0.95">
+        <path d="M548,248 C540,234 530,218 520,204"/>
+        <path d="M558,244 C558,228 560,212 564,198"/>
+        <path d="M562,250 C576,240 588,230 600,222"/>
+        <path d="M563,258 C580,258 594,260 608,264"/>
+        <path d="M558,262 C561,278 563,292 565,304"/>
+        <path d="M551,256 C536,260 522,266 510,272"/>
       </g>
-      <path d="M548,258 C536,268 534,286 545,301 C559,313 575,309 583,295
-               C589,279 581,262 568,254 C559,250 553,252 548,258 Z"
-            fill="#052145" stroke="#1b2236" stroke-width="2.2" stroke-linejoin="round"/>
-      <g fill="none" stroke="#2f5f9e" stroke-width="1.8" opacity="0.5">
-        <path d="M562,210 C582,206 598,212 608,224"/>
-        <path d="M528,290 C518,296 510,302 504,309"/>
-        <path d="M596,297 C608,305 618,315 626,325"/>
-        <path d="M548,220 C542,234 540,250 544,264"/>
+      <g fill="#e2685c">
+        <circle cx="546" cy="240" r="2.5"/><circle cx="536" cy="232" r="2.1"/>
+        <circle cx="556" cy="234" r="2.3"/><circle cx="566" cy="240" r="2.1"/>
+        <circle cx="572" cy="252" r="2.5"/><circle cx="564" cy="266" r="2.3"/>
+        <circle cx="550" cy="266" r="2.1"/><circle cx="542" cy="254" r="2.3"/>
+        <circle cx="530" cy="248" r="1.9"/><circle cx="578" cy="262" r="1.9"/>
       </g>
-
-      <!-- white lily: six lance-shaped petals around a stamen cluster -->
-      <g id="lily">
-        <g fill="#fdf9f0" stroke="#dd9179" stroke-width="2" stroke-linejoin="round">
-          <path d="M548,264 C522,242 518,214 534,194 C558,212 566,240 556,264 Z"/>
-          <path d="M546,268 C518,276 496,264 486,238 C512,226 540,238 552,258 Z"/>
-          <path d="M552,256 C554,226 572,206 600,200 C602,230 588,254 562,268 Z"/>
-          <path d="M556,266 C578,250 606,250 622,266 C606,288 578,294 554,280 Z"/>
-          <path d="M552,272 C572,282 584,302 582,326 C558,320 544,302 544,278 Z"/>
-          <path d="M542,274 C534,296 520,310 502,316 C498,294 514,272 538,264 Z"/>
-        </g>
-        <g fill="none" stroke="#e0a08a" stroke-width="1.4" opacity="0.85">
-          <path d="M548,260 C544,240 538,218 533,201"/>
-          <path d="M548,260 C532,254 514,248 494,243"/>
-          <path d="M548,260 C562,248 578,230 589,208"/>
-          <path d="M548,260 C568,260 590,256 608,248"/>
-          <path d="M548,260 C556,280 566,300 575,314"/>
-          <path d="M548,260 C538,274 526,292 520,311"/>
-        </g>
-        <g fill="#dfe5f0" opacity="0.4">
-          <path d="M536,226 C542,238 548,248 550,256 C544,254 538,242 534,228 Z"/>
-          <path d="M568,258 C584,256 598,250 608,244 C598,258 582,264 568,266 Z"/>
-          <path d="M532,278 C524,288 520,300 519,311 C528,300 536,290 541,281 Z"/>
-          <path d="M558,282 C564,294 570,304 572,312 C564,306 558,294 555,284 Z"/>
-          <path d="M566,230 C576,222 584,214 589,208 C583,224 573,236 561,244 Z"/>
-        </g>
-        <g fill="#e8654a">
-          <circle cx="551" cy="243" r="3.8"/>
-          <circle cx="562" cy="246" r="3.8"/>
-          <circle cx="555" cy="254" r="3.5"/>
-          <circle cx="567" cy="252" r="3.5"/>
-          <circle cx="564" cy="262" r="3.4"/>
-          <circle cx="545" cy="250" r="3.2"/>
-          <circle cx="574" cy="244" r="3.1"/>
-        </g>
-        <g fill="none" stroke="#eaa693" stroke-width="1.2" opacity="0.8">
-          <path d="M548,260 L551,245"/>
-          <path d="M548,260 L562,248"/>
-          <path d="M548,260 L555,256"/>
-          <path d="M548,260 L567,254"/>
-          <path d="M548,260 L564,263"/>
-          <path d="M548,260 L546,252"/>
-        </g>
-        <circle cx="547" cy="260" r="2.8" fill="#c6ccd9" opacity="0.8"/>
+      <g stroke="#d8b46a" stroke-width="1.5" fill="none" stroke-linecap="round">
+        <path d="M556,252 C562,262 568,272 574,278"/>
+        <path d="M556,252 C550,262 546,274 544,282"/>
+        <path d="M556,252 C566,256 576,258 584,258"/>
       </g>
+      <g fill="#c88f4a">
+        <circle cx="575" cy="279" r="2.4"/><circle cx="543" cy="283" r="2.4"/>
+        <circle cx="585" cy="258" r="2.4"/>
+      </g>
+      <circle cx="556" cy="252" r="3.6" fill="#f6e6cf" stroke="#cbb59b" stroke-width="1.1"/>
     </g>
   </g>
 </svg>
