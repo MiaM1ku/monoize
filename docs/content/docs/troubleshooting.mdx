@@ -47,7 +47,7 @@ The user balance, or the key's sub-account balance, is zero or negative. Top up 
 
 ### Charges look wrong
 
-Charge = base model price × Channel model `multiplier`. Confirm the model has metadata prices on the **Models** page, and check the multiplier on the Channel model entry.
+Charge = base price × group `billing_ratio` × Channel model `multiplier`. Confirm the model has an enabled price row on the **Models** page. Check the group's billing ratio in **Models → Group Pricing**. Check the multiplier on the Channel model entry. A multiplier of `0` makes the Channel free.
 
 ## Streaming problems
 

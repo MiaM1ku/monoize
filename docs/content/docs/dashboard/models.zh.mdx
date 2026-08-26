@@ -17,16 +17,35 @@ Channel 的模型条目可以用 `redirect` 指定真实的上游模型名。
 
 示例：客户端调用 `my-fast-model`。Channel A 将其重定向到 `gpt-4o-mini`，Channel B 将其重定向到 `claude-3-5-haiku-20241022`。计费和日志始终显示逻辑名。
 
-## 模型元数据与定价
+## 模型定价
 
-**模型数据库**页面存储模型元数据：上下文窗口、能力和每 Token 价格。Monoize 从 [Models.dev](https://models.dev) 导入元数据和价格。
+**模型**页面是定价控制台，包含五个标签页：
 
-计费规则：
+- **模型定价**：每个模型一条价格记录。每条记录设置计费模式：`per_token`、`per_request` 或 `tiered_expr`。
+- **未定价模型**：已映射但没有启用价格记录的模型。
+- **工具价格**：服务端工具类别的价格。计量单位为 `1k_calls`、`minute` 和 `session`。
+- **上游同步**：从 Models.dev、OpenRouter 或 new-api 实例导入价格。
+- **分组定价**：每个分组一个计费倍率。
 
-1. 取元数据表中的模型基础价格；
-2. 乘以 Channel 模型条目的 `multiplier`。
+Monoize 按以下顺序计算每笔费用：
+
+1. 根据模型价格记录和实际用量计算基础费用。
+2. 乘以分组的 `billing_ratio`。
+3. 乘以 Channel 模型条目的 `multiplier`。
+4. 截断为整数纳美元。
+
+Channel 的 `multiplier` 为 `0` 时，该 Channel 上的请求免费。
 
 费用以纳美元（nano-dollar）为单位累计到每个用户的流水账。
+
+## 价格同步
+
+1. 打开**模型 → 上游同步**。
+2. 选择数据源：Models.dev、OpenRouter 或 new-api 实例。
+3. 点击**预览**。表格显示新增记录和变更字段。
+4. 点击**应用**。Monoize 写入变更并记录一条审计记录。
+
+同步不会修改已锁定的字段。同步不会删除手动创建的记录。
 
 ## 模型列表
 
