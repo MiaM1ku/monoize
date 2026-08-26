@@ -47,8 +47,8 @@ pub use groups::{
     update_group,
 };
 pub use model_prices::{
-    delete_model_price, list_model_prices, list_price_sync_runs, list_unpriced_models,
-    upsert_model_price,
+    apply_price_sync, delete_model_price, list_model_prices, list_price_sync_runs,
+    list_unpriced_models, preview_price_sync, upsert_model_price,
 };
 pub use model_registry::{
     create_model, delete_model, delete_model_metadata, get_model, get_model_metadata,

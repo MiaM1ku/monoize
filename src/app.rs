@@ -1913,6 +1913,14 @@ fn build_dashboard_api_router() -> Router<AppState> {
             get(crate::dashboard_handlers::list_price_sync_runs),
         )
         .route(
+            "/dashboard/price-sync/{source}/preview",
+            post(crate::dashboard_handlers::preview_price_sync),
+        )
+        .route(
+            "/dashboard/price-sync/{source}/apply",
+            post(crate::dashboard_handlers::apply_price_sync),
+        )
+        .route(
             "/dashboard/model-prices/{*model_id}",
             put(crate::dashboard_handlers::upsert_model_price)
                 .delete(crate::dashboard_handlers::delete_model_price),

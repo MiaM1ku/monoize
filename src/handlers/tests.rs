@@ -11,7 +11,6 @@ use crate::users::{
     compile_model_redirects,
 };
 use axum::http::StatusCode;
-use serde_json::Value;
 use std::collections::{BTreeSet, HashMap};
 
 const GROUP_ROUTING_MODEL: &str = "gpt-group-routing";

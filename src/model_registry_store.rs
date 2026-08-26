@@ -2,8 +2,7 @@ use crate::db::DbPool;
 use crate::model_registry::{ModelCapabilities, ModelRecord};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
-use rust_decimal::prelude::ToPrimitive;
-use sea_orm::{ConnectionTrait, DatabaseTransaction, TransactionTrait};
+use sea_orm::{ConnectionTrait, TransactionTrait};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use std::str::FromStr;
@@ -59,16 +58,13 @@ pub struct UpdateModelInput {
     pub priority: Option<i32>,
 }
 
+/// Metadata rows no longer carry prices (`model-pricing.spec.md` MP-Y10);
+/// prices live only in `model_prices`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DbModelMetadataRecord {
     pub model_id: String,
     pub models_dev_provider: Option<String>,
     pub mode: Option<String>,
-    pub input_cost_per_token_nano: Option<String>,
-    pub output_cost_per_token_nano: Option<String>,
-    pub cache_read_input_cost_per_token_nano: Option<String>,
-    pub cache_creation_input_cost_per_token_nano: Option<String>,
-    pub output_cost_per_reasoning_token_nano: Option<String>,
     pub max_input_tokens: Option<i64>,
     pub max_output_tokens: Option<i64>,
     pub max_tokens: Option<i64>,
@@ -77,31 +73,12 @@ pub struct DbModelMetadataRecord {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone)]
-pub struct ModelPricing {
-    pub input_cost_per_token_nano: i128,
-    pub output_cost_per_token_nano: i128,
-    pub cache_read_input_cost_per_token_nano: Option<i128>,
-    pub cache_creation_input_cost_per_token_nano: Option<i128>,
-    pub output_cost_per_reasoning_token_nano: Option<i128>,
-}
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct UpsertModelMetadataInput {
     #[serde(default, deserialize_with = "deserialize_nullable_field")]
     pub models_dev_provider: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_nullable_field")]
     pub mode: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_nullable_field")]
-    pub input_cost_per_token_nano: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_nullable_field")]
-    pub output_cost_per_token_nano: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_nullable_field")]
-    pub cache_read_input_cost_per_token_nano: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_nullable_field")]
-    pub cache_creation_input_cost_per_token_nano: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_nullable_field")]
-    pub output_cost_per_reasoning_token_nano: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_nullable_field")]
     pub max_input_tokens: Option<Option<i64>>,
     #[serde(default, deserialize_with = "deserialize_nullable_field")]
@@ -390,11 +367,8 @@ impl ModelRegistryStore {
             .db
             .read()
             .query_all(self.db.stmt(
-                "SELECT model_id, models_dev_provider, mode, input_cost_per_token_nano,
-                        output_cost_per_token_nano, cache_read_input_cost_per_token_nano,
-                        cache_creation_input_cost_per_token_nano,
-                        output_cost_per_reasoning_token_nano, max_input_tokens, max_output_tokens,
-                        max_tokens, raw_json, source, updated_at
+                "SELECT model_id, models_dev_provider, mode, max_input_tokens,
+                        max_output_tokens, max_tokens, raw_json, source, updated_at
                  FROM model_metadata_records
                  ORDER BY model_id ASC",
                 vec![],
@@ -413,11 +387,7 @@ impl ModelRegistryStore {
             .read()
             .query_all(self.db.stmt(
                 "SELECT DISTINCT
-                        m.model_id, m.models_dev_provider, m.mode,
-                        m.input_cost_per_token_nano, m.output_cost_per_token_nano,
-                        m.cache_read_input_cost_per_token_nano,
-                        m.cache_creation_input_cost_per_token_nano,
-                        m.output_cost_per_reasoning_token_nano, m.max_input_tokens,
+                        m.model_id, m.models_dev_provider, m.mode, m.max_input_tokens,
                         m.max_output_tokens, m.max_tokens, m.raw_json, m.source, m.updated_at
                  FROM model_metadata_records AS m
                  INNER JOIN monoize_channel_models AS cm ON cm.model_name = m.model_id
@@ -435,25 +405,6 @@ impl ModelRegistryStore {
         rows.iter().map(row_to_model_metadata).collect()
     }
 
-    pub async fn list_priced_model_ids(&self) -> Result<std::collections::HashSet<String>, String> {
-        let rows = self
-            .db
-            .read()
-            .query_all(self.db.stmt(
-                "SELECT model_id FROM model_metadata_records WHERE input_cost_per_token_nano IS NOT NULL AND output_cost_per_token_nano IS NOT NULL",
-                vec![],
-            ))
-            .await
-            .map_err(|e| e.to_string())?;
-
-        let mut set = std::collections::HashSet::new();
-        for row in &rows {
-            let id: String = row.try_get("", "model_id").map_err(|e| e.to_string())?;
-            set.insert(id);
-        }
-        Ok(set)
-    }
-
     pub async fn get_model_metadata(
         &self,
         model_id: &str,
@@ -462,11 +413,8 @@ impl ModelRegistryStore {
             .db
             .read()
             .query_one(self.db.stmt(
-                "SELECT model_id, models_dev_provider, mode, input_cost_per_token_nano,
-                        output_cost_per_token_nano, cache_read_input_cost_per_token_nano,
-                        cache_creation_input_cost_per_token_nano,
-                        output_cost_per_reasoning_token_nano, max_input_tokens, max_output_tokens,
-                        max_tokens, raw_json, source, updated_at
+                "SELECT model_id, models_dev_provider, mode, max_input_tokens,
+                        max_output_tokens, max_tokens, raw_json, source, updated_at
                  FROM model_metadata_records
                  WHERE model_id = $1",
                 vec![model_id.into()],
@@ -480,122 +428,11 @@ impl ModelRegistryStore {
         }
     }
 
-    pub async fn list_model_metadata_pricing_profiles(
-        &self,
-        model_ids: &[String],
-    ) -> Result<std::collections::HashMap<String, String>, String> {
-        if model_ids.is_empty() {
-            return Ok(std::collections::HashMap::new());
-        }
-        let model_ids = model_ids
-            .iter()
-            .cloned()
-            .collect::<std::collections::BTreeSet<_>>()
-            .into_iter()
-            .collect::<Vec<_>>();
-        let mut profiles = std::collections::HashMap::new();
-        const LOOKUP_CHUNK_SIZE: usize = 400;
-        for chunk in model_ids.chunks(LOOKUP_CHUNK_SIZE) {
-            let placeholders = (0..chunk.len())
-                .map(|index| format!("${}", index + 1))
-                .collect::<Vec<_>>()
-                .join(", ");
-            let rows = self
-                .db
-                .read()
-                .query_all(self.db.stmt(
-                    &format!(
-                        "SELECT model_id, models_dev_provider
-                         FROM model_metadata_records
-                         WHERE model_id IN ({placeholders})
-                           AND models_dev_provider IS NOT NULL"
-                    ),
-                    chunk.iter().cloned().map(Into::into).collect(),
-                ))
-                .await
-                .map_err(|e| e.to_string())?;
-            for row in rows {
-                let model_id: String = row.try_get("", "model_id").map_err(|e| e.to_string())?;
-                let profile: String = row
-                    .try_get("", "models_dev_provider")
-                    .map_err(|e| e.to_string())?;
-                let profile = profile.trim();
-                if !profile.is_empty() {
-                    profiles.insert(model_id, profile.to_string());
-                }
-            }
-        }
-        Ok(profiles)
-    }
-
-    pub async fn get_model_pricing(&self, model_id: &str) -> Result<Option<ModelPricing>, String> {
-        let row = self.get_model_metadata(model_id).await?;
-        let Some(row) = row else {
-            return Ok(None);
-        };
-        let Some(input_raw) = row.input_cost_per_token_nano else {
-            return Ok(None);
-        };
-        let Some(output_raw) = row.output_cost_per_token_nano else {
-            return Ok(None);
-        };
-        let input_cost_per_token_nano = input_raw
-            .parse::<i128>()
-            .map_err(|_| "invalid input_cost_per_token_nano".to_string())?;
-        let output_cost_per_token_nano = output_raw
-            .parse::<i128>()
-            .map_err(|_| "invalid output_cost_per_token_nano".to_string())?;
-        let cache_read_input_cost_per_token_nano = row
-            .cache_read_input_cost_per_token_nano
-            .map(|v| v.parse::<i128>())
-            .transpose()
-            .map_err(|_| "invalid cache_read_input_cost_per_token_nano".to_string())?;
-        let cache_creation_input_cost_per_token_nano = row
-            .cache_creation_input_cost_per_token_nano
-            .map(|v| v.parse::<i128>())
-            .transpose()
-            .map_err(|_| "invalid cache_creation_input_cost_per_token_nano".to_string())?;
-        let output_cost_per_reasoning_token_nano = row
-            .output_cost_per_reasoning_token_nano
-            .map(|v| v.parse::<i128>())
-            .transpose()
-            .map_err(|_| "invalid output_cost_per_reasoning_token_nano".to_string())?;
-
-        Ok(Some(ModelPricing {
-            input_cost_per_token_nano,
-            output_cost_per_token_nano,
-            cache_read_input_cost_per_token_nano,
-            cache_creation_input_cost_per_token_nano,
-            output_cost_per_reasoning_token_nano,
-        }))
-    }
-
     pub async fn upsert_model_metadata(
         &self,
         model_id: &str,
         input: UpsertModelMetadataInput,
     ) -> Result<DbModelMetadataRecord, String> {
-        validate_optional_price(
-            "input_cost_per_token_nano",
-            input.input_cost_per_token_nano.as_ref(),
-        )?;
-        validate_optional_price(
-            "output_cost_per_token_nano",
-            input.output_cost_per_token_nano.as_ref(),
-        )?;
-        validate_optional_price(
-            "cache_read_input_cost_per_token_nano",
-            input.cache_read_input_cost_per_token_nano.as_ref(),
-        )?;
-        validate_optional_price(
-            "cache_creation_input_cost_per_token_nano",
-            input.cache_creation_input_cost_per_token_nano.as_ref(),
-        )?;
-        validate_optional_price(
-            "output_cost_per_reasoning_token_nano",
-            input.output_cost_per_reasoning_token_nano.as_ref(),
-        )?;
-
         let now = Utc::now().to_rfc3339();
         let write_guard = self.db.write().await;
         let txn = write_guard.begin().await.map_err(|e| e.to_string())?;
@@ -616,36 +453,6 @@ impl ModelRegistryStore {
             input.mode,
             existing.as_ref().and_then(|record| record.mode.clone()),
         );
-        let input_cost_per_token_nano = merge_nullable(
-            input.input_cost_per_token_nano,
-            existing
-                .as_ref()
-                .and_then(|record| record.input_cost_per_token_nano.clone()),
-        );
-        let output_cost_per_token_nano = merge_nullable(
-            input.output_cost_per_token_nano,
-            existing
-                .as_ref()
-                .and_then(|record| record.output_cost_per_token_nano.clone()),
-        );
-        let cache_read_input_cost_per_token_nano = merge_nullable(
-            input.cache_read_input_cost_per_token_nano,
-            existing
-                .as_ref()
-                .and_then(|record| record.cache_read_input_cost_per_token_nano.clone()),
-        );
-        let cache_creation_input_cost_per_token_nano = merge_nullable(
-            input.cache_creation_input_cost_per_token_nano,
-            existing
-                .as_ref()
-                .and_then(|record| record.cache_creation_input_cost_per_token_nano.clone()),
-        );
-        let output_cost_per_reasoning_token_nano = merge_nullable(
-            input.output_cost_per_reasoning_token_nano,
-            existing
-                .as_ref()
-                .and_then(|record| record.output_cost_per_reasoning_token_nano.clone()),
-        );
         let max_input_tokens = merge_nullable(
             input.max_input_tokens,
             existing.as_ref().and_then(|record| record.max_input_tokens),
@@ -663,18 +470,12 @@ impl ModelRegistryStore {
 
         txn.execute(self.db.stmt(
                 "INSERT INTO model_metadata_records
-                 (model_id, models_dev_provider, mode, input_cost_per_token_nano, output_cost_per_token_nano,
-                  cache_read_input_cost_per_token_nano, cache_creation_input_cost_per_token_nano, output_cost_per_reasoning_token_nano,
+                 (model_id, models_dev_provider, mode,
                   max_input_tokens, max_output_tokens, max_tokens, raw_json, source, updated_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, '{}', 'manual', $12)
+                 VALUES ($1, $2, $3, $4, $5, $6, '{}', 'manual', $7)
                  ON CONFLICT(model_id) DO UPDATE SET
                    models_dev_provider = excluded.models_dev_provider,
                    mode = excluded.mode,
-                   input_cost_per_token_nano = excluded.input_cost_per_token_nano,
-                   output_cost_per_token_nano = excluded.output_cost_per_token_nano,
-                   cache_read_input_cost_per_token_nano = excluded.cache_read_input_cost_per_token_nano,
-                   cache_creation_input_cost_per_token_nano = excluded.cache_creation_input_cost_per_token_nano,
-                   output_cost_per_reasoning_token_nano = excluded.output_cost_per_reasoning_token_nano,
                    max_input_tokens = excluded.max_input_tokens,
                    max_output_tokens = excluded.max_output_tokens,
                    max_tokens = excluded.max_tokens,
@@ -684,11 +485,6 @@ impl ModelRegistryStore {
                     model_id.into(),
                     models_dev_provider.into(),
                     mode.into(),
-                    input_cost_per_token_nano.into(),
-                    output_cost_per_token_nano.into(),
-                    cache_read_input_cost_per_token_nano.into(),
-                    cache_creation_input_cost_per_token_nano.into(),
-                    output_cost_per_reasoning_token_nano.into(),
                     max_input_tokens.into(),
                     max_output_tokens.into(),
                     max_tokens.into(),
@@ -701,109 +497,42 @@ impl ModelRegistryStore {
         let record = get_model_metadata_with(&self.db, &txn, model_id)
             .await?
             .ok_or_else(|| "upsert succeeded but record not found".to_string())?;
-        upsert_model_metadata_billing_rates(&self.db, &txn, &record).await?;
         txn.commit().await.map_err(|e| e.to_string())?;
         Ok(record)
     }
 
     pub async fn delete_model_metadata(&self, model_id: &str) -> Result<bool, String> {
         let write_guard = self.db.write().await;
-        let txn = write_guard.begin().await.map_err(|e| e.to_string())?;
-        let result = txn
+        let result = write_guard
             .execute(self.db.stmt(
                 "DELETE FROM model_metadata_records WHERE model_id = $1",
                 vec![model_id.into()],
             ))
             .await
             .map_err(|e| e.to_string())?;
-        if result.rows_affected() == 0 {
-            txn.rollback().await.map_err(|e| e.to_string())?;
-            return Ok(false);
-        }
-        delete_model_metadata_billing_rates(&self.db, &txn, model_id).await?;
-        txn.commit().await.map_err(|e| e.to_string())?;
-        Ok(true)
+        Ok(result.rows_affected() > 0)
     }
 
+    /// Fetch models.dev and upsert metadata rows (MP-Y10). Metadata rows no
+    /// longer carry prices; `model_prices` is written only by the price sync
+    /// engine (`price_sync`).
     pub async fn sync_from_models_dev(
         &self,
         http: &reqwest::Client,
     ) -> Result<ModelMetadataSyncResult, String> {
-        const MODELS_DEV_URL: &str = "https://models.dev/api.json";
-        let resp = http
-            .get(MODELS_DEV_URL)
-            .send()
-            .await
-            .map_err(|e| format!("fetch_failed: {e}"))?;
-        let status = resp.status();
-        if !status.is_success() {
-            return Err(format!("fetch_failed: status={status}"));
-        }
-        let body = crate::bounded_response::read_upstream_discovery_body(resp)
-            .await
-            .map_err(|e| format!("fetch_failed: {e}"))?;
-        let root: Value =
-            serde_json::from_slice(&body).map_err(|e| format!("parse_failed: {e}"))?;
-        let providers = root
-            .as_object()
-            .ok_or_else(|| "parse_failed: root must be object".to_string())?;
+        let root = crate::price_sync::fetch_models_dev_root(http).await?;
+        self.apply_models_dev_metadata(&root).await
+    }
 
-        let mut grouped: std::collections::HashMap<String, Vec<SyncProviderVariant>> =
-            std::collections::HashMap::new();
-
-        for (provider_id, provider_val) in providers {
-            let provider_obj = match provider_val.as_object() {
-                Some(v) => v,
-                None => continue,
-            };
-            let models = match provider_obj.get("models").and_then(|m| m.as_object()) {
-                Some(v) => v,
-                None => continue,
-            };
-            for (model_name, model_val) in models {
-                let model_obj = match model_val.as_object() {
-                    Some(v) => v,
-                    None => continue,
-                };
-                let cost = model_obj.get("cost").and_then(|c| c.as_object());
-                let limit = model_obj.get("limit").and_then(|l| l.as_object());
-                let canonical = normalize_model_id(model_name, Some(provider_id));
-                if should_ignore_sync_model(&canonical) {
-                    continue;
-                }
-                grouped
-                    .entry(canonical)
-                    .or_default()
-                    .push(SyncProviderVariant {
-                        provider_id: provider_id.clone(),
-                        family: model_obj
-                            .get("family")
-                            .and_then(|f| f.as_str())
-                            .map(|s| s.to_string()),
-                        input_cost_nano: cost
-                            .and_then(|c| c.get("input"))
-                            .and_then(cost_per_1m_to_nano_string),
-                        output_cost_nano: cost
-                            .and_then(|c| c.get("output"))
-                            .and_then(cost_per_1m_to_nano_string),
-                        cache_read_nano: cost
-                            .and_then(|c| c.get("cache_read"))
-                            .and_then(cost_per_1m_to_nano_string),
-                        cache_write_nano: cost
-                            .and_then(|c| c.get("cache_write"))
-                            .and_then(cost_per_1m_to_nano_string),
-                        reasoning_nano: cost
-                            .and_then(|c| c.get("reasoning"))
-                            .and_then(cost_per_1m_to_nano_string),
-                        max_input_tokens: limit.and_then(|l| l.get("input")).and_then(value_to_i64),
-                        max_output_tokens: limit
-                            .and_then(|l| l.get("output"))
-                            .and_then(value_to_i64),
-                        max_tokens: limit.and_then(|l| l.get("context")).and_then(value_to_i64),
-                        raw: models_dev_variant_for_dashboard(model_val),
-                    });
-            }
-        }
+    /// Apply one parsed models.dev snapshot to `model_metadata_records`:
+    /// delete non-manual rows, then insert one row per canonical model that
+    /// has a strictly positive input cost variant. Manual rows are kept and
+    /// counted as skipped.
+    pub async fn apply_models_dev_metadata(
+        &self,
+        root: &Value,
+    ) -> Result<ModelMetadataSyncResult, String> {
+        let grouped = group_models_dev_variants(root)?;
 
         let fetched_at = Utc::now().to_rfc3339();
         let _write_guard = self.db.write().await;
@@ -817,12 +546,6 @@ impl ModelRegistryStore {
             .await
             .map_err(|e| e.to_string())?;
         let deleted = del_result.rows_affected();
-        txn.execute(self.db.stmt(
-            "DELETE FROM billing_rate_records WHERE source = 'models_dev'",
-            vec![],
-        ))
-        .await
-        .map_err(|e| e.to_string())?;
 
         let manual_rows = txn
             .query_all(self.db.stmt(
@@ -840,11 +563,8 @@ impl ModelRegistryStore {
             .collect::<Result<std::collections::HashSet<_>, _>>()?;
 
         let mut metadata_writes = Vec::new();
-        let mut rate_writes = Vec::new();
         let mut skipped = 0usize;
-        let mut grouped_models = grouped.iter().collect::<Vec<_>>();
-        grouped_models.sort_by(|(left, _), (right, _)| left.cmp(right));
-        for (model_name, variants) in grouped_models {
+        for (model_name, variants) in &grouped {
             if !has_positive_input_variant(variants) {
                 continue;
             }
@@ -871,47 +591,16 @@ impl ModelRegistryStore {
                 model_name: model_name.clone(),
                 provider_id: winner.provider_id.clone(),
                 mode,
-                input_cost_nano: winner.input_cost_nano.clone(),
-                output_cost_nano: winner.output_cost_nano.clone(),
-                cache_read_nano: winner.cache_read_nano.clone(),
-                cache_write_nano: winner.cache_write_nano.clone(),
-                reasoning_nano: winner.reasoning_nano.clone(),
                 max_input_tokens: winner.max_input_tokens,
                 max_output_tokens: winner.max_output_tokens,
                 max_tokens: winner.max_tokens,
                 raw_json: serde_json::json!({ "providers": providers_map }).to_string(),
             });
-            for (usage_class, price) in [
-                ("input_uncached", winner.input_cost_nano.as_ref()),
-                ("output", winner.output_cost_nano.as_ref()),
-                ("cache_read", winner.cache_read_nano.as_ref()),
-                ("cache_write_5m", winner.cache_write_nano.as_ref()),
-                ("reasoning_output", winner.reasoning_nano.as_ref()),
-            ] {
-                let Some(price) = price else {
-                    continue;
-                };
-                rate_writes.push(ModelsDevRateWrite {
-                    id: format!(
-                        "models_dev:{}:{}:{usage_class}",
-                        winner.provider_id, model_name
-                    ),
-                    pricing_profile: winner.provider_id.clone(),
-                    model_name: model_name.clone(),
-                    usage_class,
-                    price: price.clone(),
-                    raw_json: serde_json::json!({
-                        "source": "models.dev",
-                        "models_dev_provider": winner.provider_id
-                    })
-                    .to_string(),
-                });
-            }
         }
 
-        const METADATA_SYNC_CHUNK_SIZE: usize = 30;
+        const METADATA_SYNC_CHUNK_SIZE: usize = 100;
         for chunk in metadata_writes.chunks(METADATA_SYNC_CHUNK_SIZE) {
-            let mut values: Vec<sea_orm::Value> = Vec::with_capacity(chunk.len() * 13);
+            let mut values: Vec<sea_orm::Value> = Vec::with_capacity(chunk.len() * 8);
             let mut rows = Vec::with_capacity(chunk.len());
             for row in chunk {
                 let start = values.len() + 1;
@@ -919,101 +608,34 @@ impl ModelRegistryStore {
                     row.model_name.clone().into(),
                     row.provider_id.clone().into(),
                     row.mode.into(),
-                    row.input_cost_nano.clone().into(),
-                    row.output_cost_nano.clone().into(),
-                    row.cache_read_nano.clone().into(),
-                    row.cache_write_nano.clone().into(),
-                    row.reasoning_nano.clone().into(),
                     row.max_input_tokens.into(),
                     row.max_output_tokens.into(),
                     row.max_tokens.into(),
                     row.raw_json.clone().into(),
                     fetched_at.clone().into(),
                 ]);
-                let mut placeholders = (start..start + 12)
+                let mut placeholders = (start..start + 7)
                     .map(|index| format!("${index}"))
                     .collect::<Vec<_>>();
                 placeholders.push("'models_dev'".to_string());
-                placeholders.push(format!("${}", start + 12));
+                placeholders.push(format!("${}", start + 7));
+                // Placeholder order: 7 data columns, literal source, updated_at.
                 rows.push(format!("({})", placeholders.join(", ")));
             }
             txn.execute(self.db.stmt(
                 &format!(
                     "INSERT INTO model_metadata_records
-                     (model_id, models_dev_provider, mode, input_cost_per_token_nano,
-                      output_cost_per_token_nano, cache_read_input_cost_per_token_nano,
-                      cache_creation_input_cost_per_token_nano,
-                      output_cost_per_reasoning_token_nano, max_input_tokens,
+                     (model_id, models_dev_provider, mode, max_input_tokens,
                       max_output_tokens, max_tokens, raw_json, source, updated_at)
                      VALUES {}
                      ON CONFLICT(model_id) DO UPDATE SET
                        models_dev_provider=excluded.models_dev_provider,
                        mode=excluded.mode,
-                       input_cost_per_token_nano=excluded.input_cost_per_token_nano,
-                       output_cost_per_token_nano=excluded.output_cost_per_token_nano,
-                       cache_read_input_cost_per_token_nano=excluded.cache_read_input_cost_per_token_nano,
-                       cache_creation_input_cost_per_token_nano=excluded.cache_creation_input_cost_per_token_nano,
-                       output_cost_per_reasoning_token_nano=excluded.output_cost_per_reasoning_token_nano,
                        max_input_tokens=excluded.max_input_tokens,
                        max_output_tokens=excluded.max_output_tokens,
                        max_tokens=excluded.max_tokens,
                        raw_json=excluded.raw_json,
                        source=excluded.source,
-                       updated_at=excluded.updated_at",
-                    rows.join(", ")
-                ),
-                values,
-            ))
-            .await
-            .map_err(|e| e.to_string())?;
-        }
-
-        const RATE_SYNC_CHUNK_SIZE: usize = 57;
-        for chunk in rate_writes.chunks(RATE_SYNC_CHUNK_SIZE) {
-            let mut values: Vec<sea_orm::Value> = Vec::with_capacity(chunk.len() * 7);
-            let mut rows = Vec::with_capacity(chunk.len());
-            for row in chunk {
-                let start = values.len() + 1;
-                values.extend([
-                    row.id.clone().into(),
-                    row.pricing_profile.clone().into(),
-                    row.model_name.clone().into(),
-                    row.usage_class.into(),
-                    row.price.clone().into(),
-                    row.raw_json.clone().into(),
-                    fetched_at.clone().into(),
-                ]);
-                rows.push(format!(
-                    "(${}, 'models_dev', ${}, ${}, NULL, 'token', ${}, 'token', ${}, '{{}}', 0, 1, ${}, ${})",
-                    start,
-                    start + 1,
-                    start + 2,
-                    start + 3,
-                    start + 4,
-                    start + 5,
-                    start + 6
-                ));
-            }
-            txn.execute(self.db.stmt(
-                &format!(
-                    "INSERT INTO billing_rate_records
-                     (id, source, pricing_profile, model_pattern, provider_type, rate_kind,
-                      usage_class, unit, unit_price_nano_usd, match_json, priority, enabled,
-                      raw_json, updated_at)
-                     VALUES {}
-                     ON CONFLICT(id) DO UPDATE SET
-                       source=excluded.source,
-                       pricing_profile=excluded.pricing_profile,
-                       model_pattern=excluded.model_pattern,
-                       provider_type=excluded.provider_type,
-                       rate_kind=excluded.rate_kind,
-                       usage_class=excluded.usage_class,
-                       unit=excluded.unit,
-                       unit_price_nano_usd=excluded.unit_price_nano_usd,
-                       match_json=excluded.match_json,
-                       priority=excluded.priority,
-                       enabled=excluded.enabled,
-                       raw_json=excluded.raw_json,
                        updated_at=excluded.updated_at",
                     rows.join(", ")
                 ),
@@ -1033,6 +655,7 @@ impl ModelRegistryStore {
             fetched_at,
         })
     }
+
 }
 
 fn row_to_record(row: &sea_orm::QueryResult) -> Result<DbModelRecord, String> {
@@ -1085,21 +708,6 @@ fn row_to_model_metadata(row: &sea_orm::QueryResult) -> Result<DbModelMetadataRe
             .try_get("", "models_dev_provider")
             .map_err(|e| e.to_string())?,
         mode: row.try_get("", "mode").map_err(|e| e.to_string())?,
-        input_cost_per_token_nano: row
-            .try_get("", "input_cost_per_token_nano")
-            .map_err(|e| e.to_string())?,
-        output_cost_per_token_nano: row
-            .try_get("", "output_cost_per_token_nano")
-            .map_err(|e| e.to_string())?,
-        cache_read_input_cost_per_token_nano: row
-            .try_get("", "cache_read_input_cost_per_token_nano")
-            .map_err(|e| e.to_string())?,
-        cache_creation_input_cost_per_token_nano: row
-            .try_get("", "cache_creation_input_cost_per_token_nano")
-            .map_err(|e| e.to_string())?,
-        output_cost_per_reasoning_token_nano: row
-            .try_get("", "output_cost_per_reasoning_token_nano")
-            .map_err(|e| e.to_string())?,
         max_input_tokens: row
             .try_get("", "max_input_tokens")
             .map_err(|e| e.to_string())?,
@@ -1122,11 +730,8 @@ async fn get_model_metadata_with<C: ConnectionTrait>(
     let row = conn
         .query_one(db.stmt(
             &format!(
-                "SELECT model_id, models_dev_provider, mode, input_cost_per_token_nano,
-                    output_cost_per_token_nano, cache_read_input_cost_per_token_nano,
-                    cache_creation_input_cost_per_token_nano,
-                    output_cost_per_reasoning_token_nano, max_input_tokens, max_output_tokens,
-                    max_tokens, raw_json, source, updated_at
+                "SELECT model_id, models_dev_provider, mode, max_input_tokens,
+                    max_output_tokens, max_tokens, raw_json, source, updated_at
              FROM model_metadata_records
              WHERE model_id = $1{lock_suffix}"
             ),
@@ -1141,187 +746,165 @@ fn merge_nullable<T>(update: Option<Option<T>>, existing: Option<T>) -> Option<T
     update.unwrap_or(existing)
 }
 
-fn validate_optional_price(field: &str, update: Option<&Option<String>>) -> Result<(), String> {
-    let Some(Some(value)) = update else {
-        return Ok(());
-    };
-    if value.is_empty()
-        || !value.bytes().all(|byte| byte.is_ascii_digit())
-        || (value.len() > 1 && value.starts_with('0'))
-        || value.parse::<i128>().is_err()
-    {
-        return Err(format!(
-            "invalid_request: {field} must be a canonical non-negative integer string"
-        ));
-    }
-    Ok(())
-}
-
-struct SyncProviderVariant {
-    provider_id: String,
-    family: Option<String>,
-    input_cost_nano: Option<String>,
-    output_cost_nano: Option<String>,
-    cache_read_nano: Option<String>,
-    cache_write_nano: Option<String>,
-    reasoning_nano: Option<String>,
-    max_input_tokens: Option<i64>,
-    max_output_tokens: Option<i64>,
-    max_tokens: Option<i64>,
-    raw: Value,
+/// One models.dev provider variant of a canonical model, with cost values
+/// kept as exact USD-per-1M decimal strings (MP-Y5).
+pub(crate) struct SyncProviderVariant {
+    pub(crate) provider_id: String,
+    pub(crate) family: Option<String>,
+    pub(crate) cost_input: Option<String>,
+    pub(crate) cost_output: Option<String>,
+    pub(crate) cost_cache_read: Option<String>,
+    pub(crate) cost_cache_write: Option<String>,
+    pub(crate) cost_reasoning: Option<String>,
+    pub(crate) max_input_tokens: Option<i64>,
+    pub(crate) max_output_tokens: Option<i64>,
+    pub(crate) max_tokens: Option<i64>,
+    pub(crate) raw: Value,
 }
 
 struct ModelsDevMetadataWrite {
     model_name: String,
     provider_id: String,
     mode: &'static str,
-    input_cost_nano: Option<String>,
-    output_cost_nano: Option<String>,
-    cache_read_nano: Option<String>,
-    cache_write_nano: Option<String>,
-    reasoning_nano: Option<String>,
     max_input_tokens: Option<i64>,
     max_output_tokens: Option<i64>,
     max_tokens: Option<i64>,
     raw_json: String,
 }
 
-struct ModelsDevRateWrite {
-    id: String,
-    pricing_profile: String,
-    model_name: String,
-    usage_class: &'static str,
-    price: String,
-    raw_json: String,
-}
-
-async fn upsert_model_metadata_billing_rates(
-    db: &DbPool,
-    conn: &DatabaseTransaction,
-    record: &DbModelMetadataRecord,
-) -> Result<(), String> {
-    delete_model_metadata_billing_rates(db, conn, &record.model_id).await?;
-
-    let pricing_profile = record
-        .models_dev_provider
-        .clone()
-        .unwrap_or_else(|| "default".to_string());
-    for (usage_class, price) in [
-        ("input_uncached", record.input_cost_per_token_nano.as_ref()),
-        ("output", record.output_cost_per_token_nano.as_ref()),
-        (
-            "cache_read",
-            record.cache_read_input_cost_per_token_nano.as_ref(),
-        ),
-        (
-            "cache_write_5m",
-            record.cache_creation_input_cost_per_token_nano.as_ref(),
-        ),
-        (
-            "reasoning_output",
-            record.output_cost_per_reasoning_token_nano.as_ref(),
-        ),
-    ] {
-        let Some(price) = price else {
-            continue;
+/// MP-Y4: group models.dev variants by canonical model id (NID1), applying
+/// the MP-Y9 skip rules. The result is sorted by canonical id for
+/// deterministic write order.
+pub(crate) fn group_models_dev_variants(
+    root: &Value,
+) -> Result<Vec<(String, Vec<SyncProviderVariant>)>, String> {
+    let providers = root
+        .as_object()
+        .ok_or_else(|| "parse_failed: root must be object".to_string())?;
+    let mut grouped: std::collections::BTreeMap<String, Vec<SyncProviderVariant>> =
+        std::collections::BTreeMap::new();
+    for (provider_id, provider_val) in providers {
+        let provider_obj = match provider_val.as_object() {
+            Some(v) => v,
+            None => continue,
         };
-        let id = format!("model_metadata:{}:{usage_class}", record.model_id);
-        conn.execute(db.stmt(
-            "INSERT INTO billing_rate_records
-                 (id, source, pricing_profile, model_pattern, provider_type, rate_kind, usage_class,
-                  unit, unit_price_nano_usd, match_json, priority, enabled, raw_json, updated_at)
-                 VALUES ($1, $2, $3, $4, NULL, 'token', $5, 'token', $6, '{}', 0, 1, $7, $8)
-                 ON CONFLICT(id) DO UPDATE SET
-                   source = excluded.source,
-                   pricing_profile = excluded.pricing_profile,
-                   model_pattern = excluded.model_pattern,
-                   usage_class = excluded.usage_class,
-                   unit_price_nano_usd = excluded.unit_price_nano_usd,
-                   raw_json = excluded.raw_json,
-                   updated_at = excluded.updated_at",
-            vec![
-                    id.into(),
-                    record.source.clone().into(),
-                    pricing_profile.clone().into(),
-                    record.model_id.clone().into(),
-                    usage_class.into(),
-                    price.clone().into(),
-                    serde_json::json!({ "source": "model_metadata_records" })
-                        .to_string()
-                        .into(),
-                    record.updated_at.to_rfc3339().into(),
-                ],
-        ))
-        .await
-        .map_err(|e| e.to_string())?;
+        let models = match provider_obj.get("models").and_then(|m| m.as_object()) {
+            Some(v) => v,
+            None => continue,
+        };
+        for (model_name, model_val) in models {
+            let model_obj = match model_val.as_object() {
+                Some(v) => v,
+                None => continue,
+            };
+            let cost = model_obj.get("cost").and_then(|c| c.as_object());
+            let limit = model_obj.get("limit").and_then(|l| l.as_object());
+            let canonical = normalize_model_id(model_name, Some(provider_id));
+            if should_ignore_sync_model(&canonical) {
+                continue;
+            }
+            grouped
+                .entry(canonical)
+                .or_default()
+                .push(SyncProviderVariant {
+                    provider_id: provider_id.clone(),
+                    family: model_obj
+                        .get("family")
+                        .and_then(|f| f.as_str())
+                        .map(|s| s.to_string()),
+                    cost_input: cost.and_then(|c| c.get("input")).and_then(usd_cost_string),
+                    cost_output: cost.and_then(|c| c.get("output")).and_then(usd_cost_string),
+                    cost_cache_read: cost
+                        .and_then(|c| c.get("cache_read"))
+                        .and_then(usd_cost_string),
+                    cost_cache_write: cost
+                        .and_then(|c| c.get("cache_write"))
+                        .and_then(usd_cost_string),
+                    cost_reasoning: cost
+                        .and_then(|c| c.get("reasoning"))
+                        .and_then(usd_cost_string),
+                    max_input_tokens: limit.and_then(|l| l.get("input")).and_then(value_to_i64),
+                    max_output_tokens: limit.and_then(|l| l.get("output")).and_then(value_to_i64),
+                    max_tokens: limit.and_then(|l| l.get("context")).and_then(value_to_i64),
+                    raw: models_dev_variant_for_dashboard(model_val),
+                });
+        }
     }
-    Ok(())
+    Ok(grouped.into_iter().collect())
 }
 
-async fn delete_model_metadata_billing_rates(
-    db: &DbPool,
-    conn: &DatabaseTransaction,
-    model_id: &str,
-) -> Result<(), String> {
-    conn.execute(db.stmt(
-        "DELETE FROM billing_rate_records
-             WHERE model_pattern = $1 AND id LIKE 'model_metadata:%'",
-        vec![model_id.into()],
-    ))
-    .await
-    .map_err(|e| e.to_string())?;
-    Ok(())
-}
+/// MP-Y8 official family→provider table: a case-insensitive prefix test on
+/// the canonical model id, first matching row wins. `o<digit>` is the letter
+/// `o` followed by an ASCII digit.
+const OFFICIAL_FAMILY_PROVIDERS: &[(&str, &str)] = &[
+    ("gpt-", "openai"),
+    ("chatgpt-", "openai"),
+    ("claude-", "anthropic"),
+    ("gemini-", "google"),
+    ("gemma-", "google"),
+    ("grok-", "xai"),
+    ("deepseek-", "deepseek"),
+    ("mistral-", "mistral"),
+    ("codestral-", "mistral"),
+    ("pixtral-", "mistral"),
+    ("ministral-", "mistral"),
+    ("magistral-", "mistral"),
+    ("devstral-", "mistral"),
+    ("qwen", "alibaba"),
+    ("qwq-", "alibaba"),
+    ("qvq-", "alibaba"),
+    ("llama-", "llama"),
+    ("command-", "cohere"),
+    ("kimi-", "moonshotai"),
+    ("moonshot-", "moonshotai"),
+    ("glm-", "zhipuai"),
+    ("minimax-", "minimax"),
+    ("step-", "stepfun"),
+    ("sonar", "perplexity"),
+    ("solar-", "upstage"),
+    ("phi-", "azure"),
+    ("mimo-", "xiaomi"),
+    ("mercury", "inception"),
+];
 
-/// Maps a canonical (bare, lowercase) model ID to its official provider ID on models.dev.
-/// Returns `None` for models that don't belong to a recognized family.
-fn official_provider_for_model(model_id: &str) -> Option<&'static str> {
-    if model_id.starts_with("gpt-") {
-        return Some("openai");
-    }
+/// Maps a canonical (bare, lowercase) model ID to its official provider ID on
+/// models.dev per MP-Y8. Returns `None` for unrecognized families.
+pub(crate) fn official_provider_for_model(model_id: &str) -> Option<&'static str> {
+    let lower = model_id.to_ascii_lowercase();
     // OpenAI o-series: "o" followed by a digit (o1, o3-pro, o4-mini, etc.)
-    if model_id.starts_with('o')
-        && model_id
+    if lower.starts_with('o')
+        && lower
             .as_bytes()
             .get(1)
             .is_some_and(|b| b.is_ascii_digit())
     {
         return Some("openai");
     }
-    if model_id.starts_with("claude-") {
-        return Some("anthropic");
-    }
-    if model_id.starts_with("gemini-") {
-        return Some("google");
-    }
-    if model_id.starts_with("grok-") {
-        return Some("xai");
-    }
-    if model_id.starts_with("deepseek-") {
-        return Some("deepseek");
-    }
-    if model_id.starts_with("mistral-")
-        || model_id.starts_with("codestral-")
-        || model_id.starts_with("pixtral-")
-        || model_id.starts_with("ministral-")
-    {
-        return Some("mistral");
-    }
-    None
+    OFFICIAL_FAMILY_PROVIDERS
+        .iter()
+        .find(|(prefix, _)| lower.starts_with(prefix))
+        .map(|(_, provider)| *provider)
 }
 
-fn pick_best_variant<'a>(
+fn positive_cost_input(variant: &SyncProviderVariant) -> Option<Decimal> {
+    variant
+        .cost_input
+        .as_ref()
+        .and_then(|raw| Decimal::from_str(raw).ok())
+        .filter(|value| value.is_sign_positive() && !value.is_zero())
+}
+
+/// MP-Y7 variant selection: official provider with positive input cost,
+/// otherwise the highest positive input cost.
+pub(crate) fn pick_best_variant<'a>(
     model_id: &str,
     variants: &'a [SyncProviderVariant],
 ) -> &'a SyncProviderVariant {
     if let Some(official) = official_provider_for_model(model_id) {
-        if let Some(v) = variants.iter().find(|v| {
-            v.provider_id == official
-                && v.input_cost_nano
-                    .as_ref()
-                    .and_then(|s| s.parse::<i128>().ok())
-                    .is_some_and(|n| n > 0)
-        }) {
+        if let Some(v) = variants
+            .iter()
+            .find(|v| v.provider_id == official && positive_cost_input(v).is_some())
+        {
             return v;
         }
     }
@@ -1329,33 +912,18 @@ fn pick_best_variant<'a>(
     variants
         .iter()
         .max_by(|a, b| {
-            let cost_a = a
-                .input_cost_nano
-                .as_ref()
-                .and_then(|s| s.parse::<i128>().ok())
-                .filter(|&v| v > 0)
-                .unwrap_or(0);
-            let cost_b = b
-                .input_cost_nano
-                .as_ref()
-                .and_then(|s| s.parse::<i128>().ok())
-                .filter(|&v| v > 0)
-                .unwrap_or(0);
+            let cost_a = positive_cost_input(a).unwrap_or(Decimal::ZERO);
+            let cost_b = positive_cost_input(b).unwrap_or(Decimal::ZERO);
             cost_a.cmp(&cost_b)
         })
         .expect("pick_best_variant called with at least one sync variant")
 }
 
-fn has_positive_input_variant(variants: &[SyncProviderVariant]) -> bool {
-    variants.iter().any(|v| {
-        v.input_cost_nano
-            .as_ref()
-            .and_then(|s| s.parse::<i128>().ok())
-            .is_some_and(|n| n > 0)
-    })
+pub(crate) fn has_positive_input_variant(variants: &[SyncProviderVariant]) -> bool {
+    variants.iter().any(|v| positive_cost_input(v).is_some())
 }
 
-fn should_ignore_sync_model(model_id: &str) -> bool {
+pub(crate) fn should_ignore_sync_model(model_id: &str) -> bool {
     model_id == "auto"
         || model_id.ends_with("-thinking")
         || model_id.ends_with(":thinking")
@@ -1368,7 +936,10 @@ fn is_embedding_family(family: Option<&str>) -> bool {
         .unwrap_or(false)
 }
 
-fn cost_per_1m_to_nano_string(value: &Value) -> Option<String> {
+/// Reads one models.dev cost value as an exact USD-per-1M decimal string
+/// (MP-Y5): the JSON token is parsed as `Decimal`, never through binary
+/// floating point, and canonicalized to at most 9 fractional digits.
+pub(crate) fn usd_cost_string(value: &Value) -> Option<String> {
     let raw = match value {
         Value::Number(number) => number.to_string(),
         Value::String(value) => value.clone(),
@@ -1377,15 +948,16 @@ fn cost_per_1m_to_nano_string(value: &Value) -> Option<String> {
     if raw.contains(['e', 'E']) || raw.starts_with('+') {
         return None;
     }
-    let decimal = Decimal::from_str(&raw).ok()?;
+    let decimal = Decimal::from_str_exact(&raw).ok()?;
     if decimal.is_sign_negative() {
         return None;
     }
-    let nano = decimal
-        .checked_mul(Decimal::from(1000u32))?
-        .trunc()
-        .to_i128()?;
-    Some(nano.to_string())
+    Some(
+        decimal
+            .round_dp_with_strategy(9, rust_decimal::RoundingStrategy::ToZero)
+            .normalize()
+            .to_string(),
+    )
 }
 
 fn models_dev_variant_for_dashboard(value: &Value) -> Value {
@@ -1488,8 +1060,8 @@ pub fn normalize_model_id(raw: &str, provider_hint: Option<&str>) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        ModelRegistryStore, UpsertModelMetadataInput, cost_per_1m_to_nano_string,
-        deserialize_nullable_field, models_dev_variant_for_dashboard,
+        ModelRegistryStore, UpsertModelMetadataInput, deserialize_nullable_field,
+        models_dev_variant_for_dashboard, usd_cost_string,
     };
     use crate::db::DbPool;
     use crate::migration::Migrator;
@@ -1500,15 +1072,10 @@ mod tests {
 
     #[test]
     fn models_dev_decimal_price_conversion_is_exact() {
-        assert_eq!(
-            cost_per_1m_to_nano_string(&json!(1.001)),
-            Some("1001".to_string())
-        );
-        assert_eq!(
-            cost_per_1m_to_nano_string(&json!("0.0009")),
-            Some("0".to_string())
-        );
-        assert_eq!(cost_per_1m_to_nano_string(&json!(-1)), None);
+        assert_eq!(usd_cost_string(&json!(1.001)), Some("1.001".to_string()));
+        assert_eq!(usd_cost_string(&json!("0.0009")), Some("0.0009".to_string()));
+        assert_eq!(usd_cost_string(&json!(2.50)), Some("2.5".to_string()));
+        assert_eq!(usd_cost_string(&json!(-1)), None);
     }
 
     #[test]
