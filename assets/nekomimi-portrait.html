@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Nekomimi portrait — hand-written SVG</title>
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 40px 20px;
+    background: #efe6d6;
+    font: 14px/1.5 ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
+    color: #3d3730;
+  }
+  h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
+  p  { margin: 0; opacity: 0.7; }
+  .frame {
+    width: min(800px, 92vw);
+    aspect-ratio: 1 / 1;
+    background: #fcf1e0;
+    border-radius: 10px;
+    box-shadow: 0 18px 44px rgba(60, 44, 30, 0.22);
+    overflow: hidden;
+  }
+  .frame object { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+  <h1>Nekomimi sailor-uniform portrait</h1>
+  <p>Hand-written SVG — no vectorisation, no embedded raster image.</p>
+  <div class="frame">
+    <object type="image/svg+xml" data="nekomimi-portrait.svg"
+            aria-label="Hand-written SVG recreation of a cat-eared anime portrait"></object>
+  </div>
+</body>
+</html>
