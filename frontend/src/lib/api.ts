@@ -249,7 +249,6 @@ export interface SystemSettings {
   monoize_request_capture_enabled: boolean;
   monoize_request_capture_max_total_bytes: number;
   monoize_mask_sensitive_info: boolean;
-  pricing_profile_model_patterns: PricingProfilePattern[];
   allow_free_when_unpriced: boolean;
   allow_free_when_missing_usage: boolean;
   tool_prices: Record<string, ToolPriceEntry>;
@@ -406,8 +405,6 @@ export interface MonoizeChannel {
   base_url: string;
   weight: number;
   enabled: boolean;
-  allow_missing_usage: boolean;
-  allow_unpriced_server_tools: boolean;
   passive_failure_count_threshold_override?: number | null;
   passive_cooldown_seconds_override?: number | null;
   passive_window_seconds_override?: number | null;
@@ -493,8 +490,6 @@ export interface CreateMonoizeChannelInput {
   api_key?: string;
   weight?: number;
   enabled?: boolean;
-  allow_missing_usage?: boolean;
-  allow_unpriced_server_tools?: boolean;
   passive_failure_count_threshold_override?: number | null;
   passive_cooldown_seconds_override?: number | null;
   passive_window_seconds_override?: number | null;
@@ -565,11 +560,6 @@ export interface ModelMetadataRecord {
   model_id: string;
   models_dev_provider?: string;
   mode?: string;
-  input_cost_per_token_nano?: string;
-  output_cost_per_token_nano?: string;
-  cache_read_input_cost_per_token_nano?: string;
-  cache_creation_input_cost_per_token_nano?: string;
-  output_cost_per_reasoning_token_nano?: string;
   max_input_tokens?: number;
   max_output_tokens?: number;
   max_tokens?: number;
@@ -578,14 +568,16 @@ export interface ModelMetadataRecord {
   updated_at: string;
 }
 
+// Marketplace rows join the enabled `model_prices` row on `model_id`
+// (model-marketplace.spec.md); prices are decimal USD-per-1M strings.
+export interface MarketplaceModelRecord extends ModelMetadataRecord {
+  input_usd_per_1m: string | null;
+  output_usd_per_1m: string | null;
+}
+
 export interface UpsertModelMetadataInput {
   models_dev_provider?: string | null;
   mode?: string | null;
-  input_cost_per_token_nano?: string | null;
-  output_cost_per_token_nano?: string | null;
-  cache_read_input_cost_per_token_nano?: string | null;
-  cache_creation_input_cost_per_token_nano?: string | null;
-  output_cost_per_reasoning_token_nano?: string | null;
   max_input_tokens?: number | null;
   max_output_tokens?: number | null;
   max_tokens?: number | null;
@@ -596,13 +588,6 @@ export interface ModelMetadataSyncResult {
   upserted: number;
   skipped: number;
   fetched_at: string;
-}
-
-// Transitional: `pricing_profile_model_patterns` remains in settings payloads
-// until migration step m20260901_000048 removes it (model-pricing.spec.md MP-M5).
-export interface PricingProfilePattern {
-  pattern: string;
-  pricing_profile: string;
 }
 
 export interface RequestLogProvider {
@@ -1351,7 +1336,7 @@ class ApiClient {
     });
   }
 
-  async listMarketplaceModels(): Promise<ModelMetadataRecord[]> {
+  async listMarketplaceModels(): Promise<MarketplaceModelRecord[]> {
     return this.request("/marketplace/models");
   }
 }

@@ -5,7 +5,7 @@ import { StatusBadge, StatusDot } from '@/components/ui/status'
 import type {
 	AffinityFailbackMode,
 	ApiTypeOverride,
-	ModelMetadataRecord,
+	ModelPriceRecord,
 	Provider,
 	ProviderType,
 	TransformRuleConfig
@@ -25,8 +25,6 @@ export type ChannelRow = {
 	api_key: string
 	weight: string
 	enabled: boolean
-	allow_missing_usage: boolean
-	allow_unpriced_server_tools: boolean
 	models: ModelRow[]
 	passive_failure_count_threshold_override: string
 	passive_cooldown_seconds_override: string
@@ -107,8 +105,6 @@ export function emptyChannelRow(): ChannelRow {
 		api_key: '',
 		weight: '1',
 		enabled: true,
-		allow_missing_usage: false,
-		allow_unpriced_server_tools: false,
 		models: [],
 		passive_failure_count_threshold_override: '',
 		passive_cooldown_seconds_override: '',
@@ -186,8 +182,6 @@ export function fromProvider(provider: Provider): ProviderForm {
 			base_url: channel.base_url,
 			weight: String(channel.weight),
 			enabled: channel.enabled,
-			allow_missing_usage: channel.allow_missing_usage ?? false,
-			allow_unpriced_server_tools: channel.allow_unpriced_server_tools ?? false,
 			models: Object.entries(channel.models).map(([model, entry]) => ({
 				model,
 				redirect: entry.redirect ?? '',
@@ -223,11 +217,18 @@ export function removeTrailingV1(baseUrl: string): string {
 	return baseUrl.trim().replace(/\/v1\/?$/i, '')
 }
 
-export function buildPricedModelIdSet(modelMetadata: ModelMetadataRecord[]): Set<string> {
+// MP-R3: a model counts as priced when its enabled `model_prices` row is
+// complete for its billing mode.
+export function buildPricedModelIdSet(modelPrices: ModelPriceRecord[]): Set<string> {
 	return new Set(
-		modelMetadata
-			.filter(item => item.input_cost_per_token_nano != null && item.output_cost_per_token_nano != null)
-			.map(item => item.model_id)
+		modelPrices
+			.filter(record => {
+				if (!record.enabled) return false
+				if (record.billing_mode === 'per_token') return record.input_usd_per_1m != null
+				if (record.billing_mode === 'per_request') return record.per_request_usd != null
+				return record.billing_expr != null
+			})
+			.map(record => record.model_id)
 	)
 }
 

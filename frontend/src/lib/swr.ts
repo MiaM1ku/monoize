@@ -20,6 +20,7 @@ import type {
   RequestLogsFilter,
   RequestCaptureDetail,
   ModelMetadataRecord,
+  MarketplaceModelRecord,
   UpsertModelMetadataInput,
   ModelPriceRecord,
   UpsertModelPriceInput,
@@ -237,7 +238,7 @@ export function usePriceSyncRuns(config?: SWRConfiguration) {
 }
 
 export function useMarketplaceModels(config?: SWRConfiguration) {
-  return useSWR<ModelMetadataRecord[]>(
+  return useSWR<MarketplaceModelRecord[]>(
     SWR_KEYS.MARKETPLACE_MODELS,
     fetchers.marketplaceModels,
     { ...defaultConfig, ...config }
@@ -950,11 +951,6 @@ export async function upsertModelMetadataOptimistic(
     ...input,
     models_dev_provider: input.models_dev_provider ?? undefined,
     mode: input.mode ?? undefined,
-    input_cost_per_token_nano: input.input_cost_per_token_nano ?? undefined,
-    output_cost_per_token_nano: input.output_cost_per_token_nano ?? undefined,
-    cache_read_input_cost_per_token_nano: input.cache_read_input_cost_per_token_nano ?? undefined,
-    cache_creation_input_cost_per_token_nano: input.cache_creation_input_cost_per_token_nano ?? undefined,
-    output_cost_per_reasoning_token_nano: input.output_cost_per_reasoning_token_nano ?? undefined,
     max_input_tokens: input.max_input_tokens ?? undefined,
     max_output_tokens: input.max_output_tokens ?? undefined,
     max_tokens: input.max_tokens ?? undefined,

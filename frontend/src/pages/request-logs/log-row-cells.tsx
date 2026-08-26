@@ -121,12 +121,23 @@ export function LogRowCells({
 	const usageInput = asObject(usageSnapshot?.input)
 	const usageOutput = asObject(usageSnapshot?.output)
 	const billingSnapshot = asObject(log.billing.breakdown)
+	// MP-B6: version 2 breakdowns stay readable; version 3 is the only shape
+	// written after the cutover, with flat line items and top-level tiers.
+	const isV3Breakdown = billingSnapshot?.version === 3
 	const billingInput = asObject(billingSnapshot?.input)
 	const billingOutput = asObject(billingSnapshot?.output)
 	const billingTier = asObject(billingSnapshot?.tier)
-	const multiplier = typeof billingSnapshot?.provider_multiplier === 'string' ?
-		normalizeMultiplier(billingSnapshot.provider_multiplier)
-	: null
+	const multiplierRaw =
+		isV3Breakdown && typeof billingSnapshot?.channel_multiplier === 'string' ?
+			billingSnapshot.channel_multiplier
+		: typeof billingSnapshot?.provider_multiplier === 'string' ?
+			billingSnapshot.provider_multiplier
+		:	null
+	const multiplier = multiplierRaw != null ? normalizeMultiplier(multiplierRaw) : null
+	const groupBillingRatio =
+		isV3Breakdown && typeof billingSnapshot?.group_billing_ratio === 'string' ?
+			normalizeMultiplier(billingSnapshot.group_billing_ratio)
+		:	null
 	const tokenLineItems = Array.isArray(billingSnapshot?.token_line_items) ?
 		billingSnapshot.token_line_items
 			.map(asObject)
@@ -134,6 +145,11 @@ export function LogRowCells({
 	:	[]
 	const meterLineItems = Array.isArray(billingSnapshot?.meter_line_items) ?
 		billingSnapshot.meter_line_items
+			.map(asObject)
+			.filter((item): item is Record<string, unknown> => item != null)
+	:	[]
+	const toolLineItems = Array.isArray(billingSnapshot?.tool_line_items) ?
+		billingSnapshot.tool_line_items
 			.map(asObject)
 			.filter((item): item is Record<string, unknown> => item != null)
 	:	[]
@@ -147,16 +163,37 @@ export function LogRowCells({
 		const quantity = readNumber(item.quantity)
 		return charge !== '0' && quantity !== 0
 	})
+	const visibleToolLineItems = toolLineItems.filter((item) => {
+		const charge = readNanoString(item, 'charge_nano')
+		const quantity = readNumber(item.quantity)
+		return charge !== '0' && quantity !== 0
+	})
 	const hasMatrixLineItems =
-		visibleTokenLineItems.length > 0 || visibleMeterLineItems.length > 0
+		visibleTokenLineItems.length > 0 ||
+		visibleMeterLineItems.length > 0 ||
+		visibleToolLineItems.length > 0
 	const contextTier =
 		typeof billingTier?.context_tier === 'string' && billingTier.context_tier ?
 			billingTier.context_tier
 		:	null
 	const serviceTier =
-		typeof billingTier?.service_tier === 'string' && billingTier.service_tier ?
+		isV3Breakdown ?
+			typeof billingSnapshot?.service_tier === 'string' && billingSnapshot.service_tier ?
+				billingSnapshot.service_tier
+			:	null
+		: typeof billingTier?.service_tier === 'string' && billingTier.service_tier ?
 			billingTier.service_tier
 		:	null
+	const freeReason =
+		isV3Breakdown && typeof billingSnapshot?.free_reason === 'string' ?
+			billingSnapshot.free_reason
+		:	null
+	const unpricedToolClasses =
+		isV3Breakdown && Array.isArray(billingSnapshot?.unpriced_tool_classes) ?
+			billingSnapshot.unpriced_tool_classes.filter(
+				(value): value is string => typeof value === 'string'
+			)
+		:	[]
 	const isEstimatedBilling = billingSnapshot?.estimated === true
 	const billingExemptionReason =
 		typeof billingSnapshot?.exemption_reason === 'string' ?
@@ -206,6 +243,27 @@ export function LogRowCells({
 		}
 		return `${formatTokenCount(quantity)} × ${formatUnitRate(unitPrice, item.unit)} = ${formatCost(charge)}`
 	}
+	// MP-B1 v3 line items carry decimal USD rates: `usd_per_1m` for token
+	// classes, `usd` (+ `per` for tools) otherwise.
+	const formatV3LineItemDetail = (item: Record<string, unknown>) => {
+		const quantity = readNumber(item.quantity)
+		const charge = readNanoString(item, 'charge_nano')
+		if (quantity == null || !charge || isZeroIntegerString(charge)) return null
+		if (typeof item.usd_per_1m === 'string' && item.usd_per_1m) {
+			return `${formatTokenCount(quantity)} × $${item.usd_per_1m}/1M = ${formatCost(charge)}`
+		}
+		if (typeof item.usd === 'string' && item.usd) {
+			const perLabel =
+				typeof item.per === 'string' && item.per ?
+					(localizeBillingValue('toolUnit', item.per) ?? item.per)
+				:	null
+			const rate = perLabel ? `$${item.usd}/${perLabel}` : `$${item.usd}`
+			return `${formatTokenCount(quantity)} × ${rate} = ${formatCost(charge)}`
+		}
+		return null
+	}
+	const lineItemDetail = (item: Record<string, unknown>) =>
+		isV3Breakdown ? formatV3LineItemDetail(item) : formatLineItemDetail(item)
 	const lineItemLabel = (item: Record<string, unknown>) => {
 		const usageClass = localizeBillingValue('usageClass', item.usage_class)
 		const modality = localizeBillingValue('modality', item.modality)
@@ -448,6 +506,8 @@ export function LogRowCells({
 		visibleBaseCharge ||
 		multiplier != null ||
 		isAdminUnpricedExemption ||
+		freeReason != null ||
+		unpricedToolClasses.length > 0 ||
 		!billingSnapshot
 	)
 
@@ -802,7 +862,7 @@ export function LogRowCells({
 									</div>
 									)}
 									{visibleTokenLineItems.map((item, index) => {
-										const detail = formatLineItemDetail(item)
+										const detail = lineItemDetail(item)
 										if (!detail) return null
 										return (
 											<div
@@ -819,11 +879,28 @@ export function LogRowCells({
 										)
 									})}
 									{visibleMeterLineItems.map((item, index) => {
-										const detail = formatLineItemDetail(item)
+										const detail = lineItemDetail(item)
 										if (!detail) return null
 										return (
 											<div
 												key={`meter-${index}`}
+												className='grid gap-0.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3'
+											>
+												<span className='min-w-0 break-words'>
+													{lineItemLabel(item)}
+												</span>
+												<span className='whitespace-nowrap font-mono sm:text-right'>
+													{detail}
+												</span>
+											</div>
+										)
+									})}
+									{visibleToolLineItems.map((item, index) => {
+										const detail = lineItemDetail(item)
+										if (!detail) return null
+										return (
+											<div
+												key={`tool-${index}`}
 												className='grid gap-0.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3'
 											>
 												<span className='min-w-0 break-words'>
@@ -899,9 +976,31 @@ export function LogRowCells({
 											</span>
 										</div>
 									)}
+									{groupBillingRatio != null && groupBillingRatio !== '1' && (
+										<div className='flex items-center justify-between gap-3'>
+											<span>{t('requestLogs.groupBillingRatio')}</span>
+											<span className='font-mono'>{groupBillingRatio}x</span>
+										</div>
+									)}
 								{!billingSnapshot && (
 									<div className='text-muted-foreground'>
 										{t('requestLogs.detailsUnavailable')}
+									</div>
+								)}
+								{freeReason === 'unpriced' && (
+									<div className='text-warning text-xs flex items-center gap-1'>
+										ℹ {t('requestLogs.freeReasonUnpriced')}
+									</div>
+								)}
+								{freeReason === 'missing_usage' && (
+									<div className='text-warning text-xs flex items-center gap-1'>
+										ℹ {t('requestLogs.freeReasonMissingUsage')}
+									</div>
+								)}
+								{unpricedToolClasses.length > 0 && (
+									<div className='text-warning text-xs flex items-center gap-1'>
+										⚠ {t('requestLogs.unpricedToolClasses')}:{' '}
+										{unpricedToolClasses.join(', ')}
 									</div>
 								)}
 								{isEstimatedBilling && (
